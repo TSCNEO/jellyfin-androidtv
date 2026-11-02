@@ -1,5 +1,19 @@
-<h1 align="center">Jellyfin for Android TV</h1>
-<h3 align="center">Part of the <a href="https://jellyfin.org">Jellyfin Project</a></h3>
+<h1 align="center">Jellyfin Direct Play (Android TV)</h1>
+<h3 align="center">Fork independiente con Force Direct Play e In-App Updater</h3>
+
+> **Nota del Fork:** Este repositorio (`TSCNEO/jellyfin-androidtv`) es un fork de [Jellyfin Android TV](https://github.com/jellyfin/jellyfin-androidtv) con optimizaciones avanzadas para homelabs y reproducción nativa de remuxes 4K (DCP, HEVC Level 6.2, Dolby Vision, TrueHD Atmos y DTS-HD).
+
+### Características Principales del Fork
+- **Force Direct Play:** Evita transcodificaciones arbitrarias causadas por límites de bitrate del servidor, niveles de códec HEVC elevados (6.1/6.2) o vetos de perfiles HDR.
+- **Identificador Desacoplado (`org.jellyfin.androidtv.directplay`):** Se instala en paralelo junto a la app oficial de Jellyfin sin conflictos ni sobreescrituras.
+- **In-App Auto-Updater (estilo Bambi):** Comprueba automáticamente nuevas versiones en GitHub Releases, descarga el APK y actualiza la app desde Ajustes -> Acerca de.
+- **CI/CD Automatizado:** Compilación y firma en GitHub Actions (`build-apk.yml`) y sincronización diaria con la rama `release-0.20.z` de upstream (`sync-upstream.yml`).
+
+Consulta la [Guía de Mantenimiento y Firma](docs/MAINTENANCE.md) para detalles sobre configuración de GitHub Secrets y firmas.
+
+---
+
+<h3 align="center">Basado en el <a href="https://jellyfin.org">Proyecto Jellyfin</a></h3>
 
 ---
 

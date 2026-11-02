@@ -262,7 +262,15 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
         playbackRetries++;
         lastPlaybackError = Instant.now().toEpochMilli();
-
+        // No automatic transcode fallback when experimental Direct Play is enabled.
+        if (mCurrentOptions != null && mCurrentOptions.getForceDirectPlay()) {
+            mPlaybackState = PlaybackState.ERROR;
+            if (mFragment != null) {
+                Utils.showToast(mFragment.getContext(), mFragment.getString(R.string.force_direct_play_failed));
+                mFragment.closePlayer();
+            }
+            return;
+        }
         if (playbackRetries < 3) {
             if (mFragment != null)
                 Utils.showToast(mFragment.getContext(), mFragment.getString(R.string.player_error));
@@ -520,8 +528,11 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         internalOptions.setItemId(item.getId());
         internalOptions.setMediaSources(item.getMediaSources());
         internalOptions.setAlwaysBurnInSubtitleWhenTranscoding(userPreferences.getValue().get(UserPreferences.Companion.getSubtitlesBurnDuringTranscode()));
-        if (playbackRetries > 0 || (isLiveTv && !directStreamLiveTv)) internalOptions.setEnableDirectPlay(false);
-        if (playbackRetries > 1) internalOptions.setEnableDirectStream(false);
+        // Live TV deliberately retains the standard behavior.
+        boolean forceDirectPlay = !isLiveTv && userPreferences.getValue().get(UserPreferences.Companion.getForceDirectPlay());
+        internalOptions.setForceDirectPlay(forceDirectPlay);
+        if (!forceDirectPlay && (playbackRetries > 0 || (isLiveTv && !directStreamLiveTv))) internalOptions.setEnableDirectPlay(false);
+        if (forceDirectPlay || playbackRetries > 1) internalOptions.setEnableDirectStream(false);
         if (mCurrentOptions != null) {
             internalOptions.setSubtitleStreamIndex(mCurrentOptions.getSubtitleStreamIndex());
             internalOptions.setAudioStreamIndex(mCurrentOptions.getAudioStreamIndex());
@@ -542,11 +553,13 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         if (!isLiveTv && currentMediaSource != null) {
             internalOptions.setMediaSourceId(currentMediaSource.getId());
         }
-        DeviceProfile internalProfile = DeviceProfileKt.createDeviceProfile(
-                mFragment.getContext(),
-                userPreferences.getValue(),
-                get(ServerVersion.class)
-        );
+        DeviceProfile internalProfile = internalOptions.getForceDirectPlay()
+                ? DeviceProfileKt.createExperimentalDirectPlayProfile()
+                : DeviceProfileKt.createDeviceProfile(
+                        mFragment.getContext(),
+                        userPreferences.getValue(),
+                        get(ServerVersion.class)
+                );
         internalOptions.setProfile(internalProfile);
         return internalOptions;
     }

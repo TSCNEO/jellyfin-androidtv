@@ -1,0 +1,128 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 4 * * *' # Diariamente a las 04:00 UTC
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Upstream branch to sync (leave blank for auto-discovery >= 0.20)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+
+jobs:
+  sync:
+    name: Check & Sync Upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Discover and Fetch Upstream
+        id: upstream
+        run: |
+          git remote add upstream https://github.com/jellyfin/jellyfin-androidtv.git 2>/dev/null || true
+          git fetch upstream --tags
+
+          TARGET="${{ github.event.inputs.target_branch }}"
+          if [ -z "$TARGET" ]; then
+            # Find active release branches >= release-0.20.z (ignoring < 0.20 and master)
+            BRANCHES=$(git branch -r | grep 'upstream/release-' | sed 's/.*upstream\///' | sort -V)
+            echo "Available upstream release branches:"
+            echo "$BRANCHES"
+
+            # Filter for release-0.X.z where X >= 20 or release-[1-9]*.z
+            VALID_BRANCHES=$(echo "$BRANCHES" | grep -E '^release-(0\.(2[0-9]|[3-9][0-9])|[1-9][0-9]*)\.' || true)
+            if [ -z "$VALID_BRANCHES" ]; then
+              TARGET="release-0.20.z"
+            else
+              TARGET=$(echo "$VALID_BRANCHES" | tail -n 1)
+            fi
+          fi
+
+          echo "Selected upstream target branch: $TARGET"
+          echo "target_branch=$TARGET" >> "$GITHUB_OUTPUT"
+
+      - name: Evaluate Upstream Changes
+        id: check
+        run: |
+          TARGET="${{ steps.upstream.outputs.target_branch }}"
+          # Check new commits from upstream that are not in HEAD
+          COMMITS=$(git log --oneline HEAD..upstream/"$TARGET" || true)
+
+          if [ -z "$COMMITS" ]; then
+            echo "Fork is completely up to date with upstream/$TARGET. Nothing to do."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Found new commits in upstream/$TARGET:"
+            echo "$COMMITS"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "commit_count=$(echo "$COMMITS" | wc -l)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Integrate Upstream and Validate
+        if: steps.check.outputs.has_changes == 'true'
+        id: merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TARGET="${{ steps.upstream.outputs.target_branch }}"
+          echo "Attempting merge of upstream/$TARGET into main..."
+
+          if ! git merge --no-edit upstream/"$TARGET"; then
+            echo "Merge conflict detected!"
+            git merge --abort || true
+
+            SYNC_BRANCH="sync/upstream-${TARGET}-$(date +%Y%m%d%H%M)"
+            git checkout -b "$SYNC_BRANCH"
+            git merge upstream/"$TARGET" || true
+            git push origin "$SYNC_BRANCH" --force
+
+            gh pr create \
+              --title "Upstream Sync Conflict: $TARGET" \
+              --body "Se han detectado cambios upstream en \`upstream/$TARGET\` con conflictos que requieren resolución manual. Rama de trabajo: \`$SYNC_BRANCH\`." \
+              --base main \
+              --head "$SYNC_BRANCH" || true
+
+            exit 1
+          fi
+
+          echo "Merge clean! Running test suite to ensure Direct Play patches remain compatible..."
+          chmod +x gradlew
+          if ! ./gradlew test --stacktrace; then
+            echo "Tests failed after merge!"
+            git reset --hard HEAD~1
+            gh issue create \
+              --title "Sync Upstream Failed Tests: $TARGET" \
+              --body "La sincronización automática con \`upstream/$TARGET\` se fusionó limpiamente pero falló la suite de tests unitarios. Se ha revertido el merge para proteger la rama main." || true
+            exit 1
+          fi
+
+          echo "Tests passed! Pushing to origin main..."
+          git push origin main
+          echo "Sync successful and pushed to main."

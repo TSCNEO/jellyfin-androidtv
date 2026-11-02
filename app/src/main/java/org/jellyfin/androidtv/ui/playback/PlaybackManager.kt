@@ -33,7 +33,9 @@ private fun createStreamInfo(
 
 	if (source == null) return@apply
 
-	if (options.enableDirectPlay && source.supportsDirectPlay) {
+	// Force the same original static stream URL used by direct play, even when
+	// the server device-profile assessment says this device cannot decode it.
+	if (options.forceDirectPlay || (options.enableDirectPlay && source.supportsDirectPlay)) {
 		playMethod = PlayMethod.DIRECT_PLAY
 		container = source.container
 		mediaUrl = when {

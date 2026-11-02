@@ -3,6 +3,8 @@ package org.jellyfin.androidtv.ui.settings.screen.about
 import android.content.ClipData
 import android.os.Build
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,6 +46,36 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 				captionContent = { Text(caption) },
 				onClick = copyAction(ClipData.newPlainText(heading, caption)),
 				modifier = Modifier.focusKey("version")
+			)
+		}
+
+		item {
+			val updateRepository = org.koin.compose.koinInject<org.jellyfin.androidtv.update.UpdateRepository>()
+			val updateState by updateRepository.state.collectAsState()
+			val caption = when (val state = updateState) {
+				is org.jellyfin.androidtv.update.UpdateState.Idle,
+				is org.jellyfin.androidtv.update.UpdateState.Unsupported -> stringResource(R.string.pref_check_updates_title)
+				is org.jellyfin.androidtv.update.UpdateState.Checking -> stringResource(R.string.loading)
+				is org.jellyfin.androidtv.update.UpdateState.UpToDate -> stringResource(R.string.pref_update_up_to_date)
+				is org.jellyfin.androidtv.update.UpdateState.Available -> "${stringResource(R.string.pref_update_available)}: v${state.update.version}"
+				is org.jellyfin.androidtv.update.UpdateState.Downloading -> "${stringResource(R.string.pref_update_downloading)} ${(state.progress * 100).toInt()}%"
+				is org.jellyfin.androidtv.update.UpdateState.Installing -> stringResource(R.string.pref_update_installing)
+				is org.jellyfin.androidtv.update.UpdateState.NeedsPermission -> stringResource(R.string.pref_update_permission_required)
+				is org.jellyfin.androidtv.update.UpdateState.Failed -> state.message
+			}
+			ListButton(
+				leadingContent = { Icon(painterResource(R.drawable.ic_guide), contentDescription = null) },
+				headingContent = { Text(stringResource(R.string.pref_check_updates_title)) },
+				captionContent = { Text(caption) },
+				onClick = {
+					when (updateState) {
+						is org.jellyfin.androidtv.update.UpdateState.Available,
+						is org.jellyfin.androidtv.update.UpdateState.NeedsPermission,
+						is org.jellyfin.androidtv.update.UpdateState.Failed -> updateRepository.downloadAndInstall()
+						else -> updateRepository.check(manual = true)
+					}
+				},
+				modifier = Modifier.focusKey("check_updates")
 			)
 		}
 

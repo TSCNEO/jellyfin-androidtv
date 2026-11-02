@@ -590,3 +590,65 @@ private fun DeviceProfileBuilder.subtitleProfile(
 	if (hls) subtitleProfile(format, SubtitleDeliveryMethod.HLS)
 	if (encode) subtitleProfile(format, SubtitleDeliveryMethod.ENCODE)
 }
+
+/**
+ * Advertise a permissive profile for experimental direct play.
+ *
+ * Deliberately no CodecProfile restrictions (level, resolution, HDR or audio
+ * channels) and no TranscodingProfile. The playback manager requests the
+ * original media URL, so device decoders still decide whether it works.
+ * This setting is opt-in; the stock profile remains untouched.
+ */
+fun createExperimentalDirectPlayProfile() = buildDeviceProfile {
+	name = "AndroidTV-ExperimentalDirectPlay"
+	maxStaticBitrate = Int.MAX_VALUE
+	maxStreamingBitrate = Int.MAX_VALUE
+
+	directPlayProfile {
+		type = DlnaProfileType.VIDEO
+		container(
+			Codec.Container.ASF,
+			Codec.Container.HLS,
+			Codec.Container.M4V,
+			Codec.Container.MKV,
+			Codec.Container.MOV,
+			Codec.Container.MP4,
+			Codec.Container.OGM,
+			Codec.Container.OGV,
+			Codec.Container.TS,
+			Codec.Container.VOB,
+			Codec.Container.WEBM,
+			Codec.Container.WMV,
+			Codec.Container.XVID,
+		)
+		videoCodec(
+			Codec.Video.AV1,
+			Codec.Video.H264,
+			Codec.Video.HEVC,
+			Codec.Video.MPEG,
+			Codec.Video.MPEG2VIDEO,
+			Codec.Video.VC1,
+			Codec.Video.VP8,
+			Codec.Video.VP9,
+		)
+		audioCodec(*supportedAudioCodecs)
+	}
+	directPlayProfile {
+		type = DlnaProfileType.AUDIO
+		audioCodec(*supportedAudioCodecs)
+	}
+
+	// Inform the server to keep internal subtitles in the original stream.
+	subtitleProfile(Codec.Subtitle.VTT, embedded = true, external = true)
+	subtitleProfile(Codec.Subtitle.WEBVTT, embedded = true, external = true)
+	subtitleProfile(Codec.Subtitle.SRT, embedded = true, external = true)
+	subtitleProfile(Codec.Subtitle.SUBRIP, embedded = true, external = true)
+	subtitleProfile(Codec.Subtitle.TTML, embedded = true, external = true)
+	subtitleProfile(Codec.Subtitle.DVBSUB, embedded = true)
+	subtitleProfile(Codec.Subtitle.DVDSUB, embedded = true)
+	subtitleProfile(Codec.Subtitle.IDX, embedded = true)
+	subtitleProfile(Codec.Subtitle.PGS, embedded = true)
+	subtitleProfile(Codec.Subtitle.PGSSUB, embedded = true)
+	subtitleProfile(Codec.Subtitle.ASS, embedded = true, external = true)
+	subtitleProfile(Codec.Subtitle.SSA, embedded = true, external = true)
+}

@@ -13,10 +13,13 @@ android {
 		minSdk = libs.versions.android.minSdk.get().toInt()
 		targetSdk = libs.versions.android.targetSdk.get().toInt()
 
-		// Release version
-		applicationId = namespace
-		versionName = project.getVersionName()
-		versionCode = getVersionCode(versionName!!)
+		val baseAppId = "org.jellyfin.androidtv.directplay"
+		applicationId = baseAppId
+		val baseVersionName = project.getVersionName("0.20.0-beta.4")
+		val forkRevision = project.getProperty("fork.revision")?.toInt() ?: 1
+		versionName = "$baseVersionName-fork.$forkRevision"
+		val baseCode = getVersionCode(baseVersionName)
+		versionCode = baseCode * 100 + forkRevision
 	}
 
 	buildFeatures {
@@ -57,13 +60,13 @@ android {
 			isShrinkResources = true
 			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
-			// Set package names used in various XML files
-			resValue("string", "app_id", namespace!!)
-			resValue("string", "app_search_suggest_authority", "${namespace}.content")
-			resValue("string", "app_search_suggest_intent_data", "content://${namespace}.content/intent")
+			val baseAppId = "org.jellyfin.androidtv.directplay"
+			resValue("string", "app_id", baseAppId)
+			resValue("string", "app_search_suggest_authority", "${baseAppId}.content")
+			resValue("string", "app_search_suggest_intent_data", "content://${baseAppId}.content/intent")
 
 			// Set flavored application name
-			resValue("string", "app_name", "@string/app_name_release")
+			resValue("string", "app_name", "Jellyfin Direct Play")
 
 			buildConfigField("boolean", "DEVELOPMENT", "false")
 
@@ -74,13 +77,14 @@ android {
 			// Use different application id to run release and debug at the same time
 			applicationIdSuffix = ".debug"
 
-			// Set package names used in various XML files
-			resValue("string", "app_id", namespace + applicationIdSuffix)
-			resValue("string", "app_search_suggest_authority", "${namespace + applicationIdSuffix}.content")
-			resValue("string", "app_search_suggest_intent_data", "content://${namespace + applicationIdSuffix}.content/intent")
+			val baseAppId = "org.jellyfin.androidtv.directplay"
+			val debugAppId = baseAppId + applicationIdSuffix
+			resValue("string", "app_id", debugAppId)
+			resValue("string", "app_search_suggest_authority", "${debugAppId}.content")
+			resValue("string", "app_search_suggest_intent_data", "content://${debugAppId}.content/intent")
 
 			// Set flavored application name
-			resValue("string", "app_name", "@string/app_name_debug")
+			resValue("string", "app_name", "Jellyfin Direct Play Debug")
 
 			buildConfigField("boolean", "DEVELOPMENT", (defaultConfig.versionCode!! < 100).toString())
 		}

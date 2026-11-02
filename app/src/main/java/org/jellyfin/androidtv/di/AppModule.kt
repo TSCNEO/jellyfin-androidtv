@@ -15,6 +15,9 @@ import org.jellyfin.androidtv.BuildConfig
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.auth.repository.UserRepositoryImpl
+import org.jellyfin.androidtv.update.UpdateRepository
+import org.jellyfin.androidtv.update.UpdateRepositoryImpl
+import kotlinx.serialization.json.Json
 import org.jellyfin.androidtv.data.eventhandling.SocketHandler
 import org.jellyfin.androidtv.data.model.DataRefreshService
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository
@@ -81,6 +84,14 @@ val appModule = module {
 	single(defaultDeviceInfo) { androidDevice(get()) }
 	single { OkHttpFactory() }
 	single { HttpClientOptions() }
+	single { Json { ignoreUnknownKeys = true } }
+	single<UpdateRepository> {
+		UpdateRepositoryImpl(
+			androidContext(),
+			get<OkHttpFactory>().createClient(get()),
+			get()
+		)
+	}
 	single {
 		createJellyfin {
 			context = androidContext()

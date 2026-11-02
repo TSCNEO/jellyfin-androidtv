@@ -56,6 +56,9 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		 */
 		var maxBitrate = stringPreference("pref_max_bitrate", "100")
 
+		/** Experimental: bypass client capability limits for internal on-demand video. */
+		var forceDirectPlay = booleanPreference("experimental_force_direct_play", false)
+
 		/**
 		 * Auto-play next item
 		 */

@@ -1,0 +1,172 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      force_revision:
+        description: 'Fork revision override (e.g. 1, 2)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Verify APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Run Unit Tests
+        run: ./gradlew test --stacktrace
+
+      - name: Determine Version and Configuration
+        id: vars
+        run: |
+          REVISION="${{ github.event.inputs.force_revision }}"
+          if [ -n "$REVISION" ]; then
+            export FORK_REVISION="$REVISION"
+          fi
+          # Resolve version name from Gradle
+          VERSION_NAME=$(./gradlew properties -q | grep "^versionName:" | awk '{print $2}')
+          if [ -z "$VERSION_NAME" ]; then
+            VERSION_NAME="0.20.0-beta.4-fork.1"
+          fi
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "Resolved version name: $VERSION_NAME"
+
+          # Check if signing secrets are present
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ] && \
+             [ -n "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ] && \
+             [ -n "${{ secrets.ANDROID_KEY_ALIAS }}" ] && \
+             [ -n "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then
+            echo "has_signing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_signing=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Signed Release APK
+        if: steps.vars.outputs.has_signing == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "Decoding release keystore..."
+          KEYSTORE_FILE="$RUNNER_TEMP/release.keystore"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_FILE"
+
+          export KEYSTORE_FILE="$KEYSTORE_FILE"
+          export KEYSTORE_PASSWORD="$KEYSTORE_PASSWORD"
+          export SIGNING_KEY_ALIAS="$KEY_ALIAS"
+          export SIGNING_KEY_PASSWORD="$KEY_PASSWORD"
+
+          ./gradlew assembleRelease --stacktrace
+
+          # Immediate wipe of sensitive keystore file
+          rm -f "$KEYSTORE_FILE"
+
+      - name: Build Development Debug APK (Fallback)
+        if: steps.vars.outputs.has_signing != 'true'
+        run: |
+          echo "::warning title=Keystore Secrets Missing::GitHub Secrets (ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD) are not configured. Building unsigned debug development APK."
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Package and Checksum Artifacts
+        id: package
+        run: |
+          mkdir -p dist
+          VERSION="${{ steps.vars.outputs.version_name }}"
+          IS_SIGNED="${{ steps.vars.outputs.has_signing }}"
+
+          if [ "$IS_SIGNED" = "true" ]; then
+            SRC_APK=$(find app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
+            DEST_NAME="Jellyfin-DirectPlay-${VERSION}.apk"
+          else
+            SRC_APK=$(find app/build/outputs/apk/debug/ -name "*.apk" | head -n 1)
+            DEST_NAME="Jellyfin-DirectPlay-${VERSION}-debug.apk"
+          fi
+
+          if [ ! -f "$SRC_APK" ]; then
+            echo "Error: APK not found!"
+            find app/build/ -name "*.apk"
+            exit 1
+          fi
+
+          cp "$SRC_APK" "dist/$DEST_NAME"
+          cd dist
+          sha256sum "$DEST_NAME" > "${DEST_NAME}.sha256"
+          cat "${DEST_NAME}.sha256"
+          cd ..
+
+          echo "apk_path=dist/$DEST_NAME" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$DEST_NAME" >> "$GITHUB_OUTPUT"
+          echo "sha_path=dist/${DEST_NAME}.sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Verify APK Signature
+        if: steps.vars.outputs.has_signing == 'true'
+        run: |
+          APK_PATH="${{ steps.package.outputs.apk_path }}"
+          if command -v apksigner >/dev/null 2>&1; then
+            apksigner verify --verbose "$APK_PATH"
+          else
+            echo "apksigner not in PATH; validating with jarsigner..."
+            jarsigner -verify -verbose -certs "$APK_PATH"
+          fi
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.apk_name }}
+          path: |
+            ${{ steps.package.outputs.apk_path }}
+            ${{ steps.package.outputs.sha_path }}
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) && steps.vars.outputs.has_signing == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.vars.outputs.version_name }}"
+          TAG="v${VERSION}"
+          APK="${{ steps.package.outputs.apk_path }}"
+          SHA="${{ steps.package.outputs.sha_path }}"
+
+          NOTES="### Jellyfin Direct Play ${VERSION}
+          - Fork independiente con **Force Direct Play** (desactiva transcodificaciones innecesarias de HEVC, TrueHD, DTS y perfiles HDR).
+          - Identificador independiente: \`org.jellyfin.androidtv.directplay\` (instalación simultánea con la app oficial).
+          - In-app auto-updater integrado con GitHub Releases.
+          - Basado en Jellyfin Android TV oficial."
+
+          gh release create "$TAG" "$APK" "$SHA" \
+            --title "Jellyfin Direct Play ${VERSION}" \
+            --notes "$NOTES" \
+            --latest || gh release upload "$TAG" "$APK" "$SHA" --clobber

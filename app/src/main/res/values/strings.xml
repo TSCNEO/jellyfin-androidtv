@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name_release" translatable="false" tools:ignore="UnusedResources">Jellyfin</string>
-    <string name="app_name_debug" translatable="false" tools:ignore="UnusedResources">Jellyfin Debug</string>
+	<string name="app_name_release" translatable="false" tools:ignore="UnusedResources">Jellyfin Direct Play</string>
+	<string name="app_name_debug" translatable="false" tools:ignore="UnusedResources">Jellyfin Direct Play Debug</string>
+
+	<!-- Updater strings -->
+	<string name="pref_check_updates_title">Check for updates</string>
+	<string name="pref_update_available">Update available</string>
+	<string name="pref_update_up_to_date">App is up to date</string>
+	<string name="pref_update_downloading">Downloading update…</string>
+	<string name="pref_update_installing">Installing…</string>
+	<string name="pref_update_failed">Update check failed</string>
+	<string name="pref_update_permission_required">Permission needed to install</string>
     <string name="video_error_unknown_error">Failed to load video</string>
     <string name="loading">Loading…</string>
     <string name="btn_cancel">Cancel</string>
@@ -699,4 +708,7 @@
     <string name="truehd">TrueHD</string>
     <string name="eac3_atmos">DD+ Atmos</string>
     <string name="truehd_atmos">TrueHD Atmos</string>
+    <string name="force_direct_play_title">Force Direct Play (experimental)</string>
+    <string name="force_direct_play_description">Try the original file with the internal player, ignoring codec, bitrate, resolution and HDR limits. No automatic transcoding. May fail or play without sound. Off by default.</string>
+    <string name="force_direct_play_failed">The original file could not be played. Disable Force Direct Play to use normal playback.</string>
 </resources>

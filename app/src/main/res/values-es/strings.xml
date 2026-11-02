@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="video_error_unknown_error">No se pudo cargar el video</string>
+    <!-- Updater strings -->
+    <string name="pref_check_updates_title">Buscar actualizaciones</string>
+    <string name="pref_update_available">Actualización disponible</string>
+    <string name="pref_update_up_to_date">La aplicación está actualizada</string>
+    <string name="pref_update_downloading">Descargando actualización…</string>
+    <string name="pref_update_installing">Instalando…</string>
+    <string name="pref_update_failed">Error al comprobar o descargar</string>
+    <string name="pref_update_permission_required">Permiso necesario para instalar</string>
     <string name="btn_cancel">Cancelar</string>
     <string name="byletter_letters">ABCDEFGHIJKLMNÑOPQRSTUVWXYZ</string>
     <string name="pref_playback">Reproducir</string>
@@ -709,4 +716,7 @@
     <string name="home_next_up_max_days">Fecha límite para la próxima actualización</string>
     <string name="tv_provider_enabled_description">Mostrar canales y recomendaciones de Jellyfin en la pantalla de inicio de Android TV</string>
     <string name="tv_provider_enabled">Integrar con Android TV Home</string>
+    <string name="force_direct_play_title">Forzar Direct Play (experimental)</string>
+    <string name="force_direct_play_description">Intenta reproducir el archivo original con el reproductor interno, ignorando límites de códec, bitrate, resolución y HDR. No se transcodificará automáticamente. Puede fallar o reproducirse sin sonido. Desactivado por defecto.</string>
+    <string name="force_direct_play_failed">No se ha podido reproducir el archivo original. Desactiva Forzar Direct Play para utilizar la reproducción normal.</string>
 </resources>

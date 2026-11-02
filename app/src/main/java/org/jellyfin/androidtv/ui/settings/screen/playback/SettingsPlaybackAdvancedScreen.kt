@@ -122,6 +122,16 @@ fun SettingsPlaybackAdvancedScreen() {
 		}
 
 		item { ListSection(headingContent = { Text(stringResource(R.string.pref_video)) }) }
+		item {
+			var forceDirectPlay by rememberPreference(userPreferences, UserPreferences.forceDirectPlay)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.force_direct_play_title)) },
+				captionContent = { Text(stringResource(R.string.force_direct_play_description)) },
+				trailingContent = { Checkbox(checked = forceDirectPlay) },
+				onClick = { forceDirectPlay = !forceDirectPlay },
+				modifier = Modifier.focusKey("force_direct_play")
+			)
+		}
 
 		item {
 			var maxBitrate by rememberPreference(userPreferences, UserPreferences.maxBitrate)
