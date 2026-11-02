@@ -98,7 +98,7 @@ val appModule = module {
 
 			// Add client info
 			val clientName = buildString {
-				append("Jellyfin for Android TV")
+				append("Jellyfin Direct Play")
 				if (BuildConfig.DEBUG) append(" (debug)")
 			}
 			clientInfo = ClientInfo(clientName, BuildConfig.VERSION_NAME)

@@ -16,8 +16,8 @@ android {
 		val baseAppId = "org.jellyfin.androidtv.directplay"
 		applicationId = baseAppId
 		val baseVersionName = project.getVersionName("0.20.0-beta.4")
-		val forkRevision = project.getProperty("fork.revision")?.toInt() ?: 1
-		versionName = "$baseVersionName-fork.$forkRevision"
+		val forkRevision = project.getProperty("fork.revision")?.toInt() ?: 2
+		versionName = "$baseVersionName-directplay.$forkRevision"
 		val baseCode = getVersionCode(baseVersionName)
 		versionCode = baseCode * 100 + forkRevision
 	}

@@ -717,6 +717,6 @@
     <string name="tv_provider_enabled_description">Mostrar canales y recomendaciones de Jellyfin en la pantalla de inicio de Android TV</string>
     <string name="tv_provider_enabled">Integrar con Android TV Home</string>
     <string name="force_direct_play_title">Forzar Direct Play (experimental)</string>
-    <string name="force_direct_play_description">Intenta reproducir el archivo original con el reproductor interno, ignorando límites de códec, bitrate, resolución y HDR. No se transcodificará automáticamente. Puede fallar o reproducirse sin sonido. Desactivado por defecto.</string>
+    <string name="force_direct_play_description">Intenta reproducir el archivo original con el reproductor interno, ignorando límites de códec, bitrate, resolución y HDR. No se transcodificará automáticamente. Puede fallar o reproducirse sin sonido. Activado por defecto.</string>
     <string name="force_direct_play_failed">No se ha podido reproducir el archivo original. Desactiva Forzar Direct Play para utilizar la reproducción normal.</string>
 </resources>

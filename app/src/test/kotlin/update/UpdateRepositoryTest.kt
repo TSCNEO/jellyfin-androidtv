@@ -9,9 +9,10 @@ class UpdateRepositoryTest : FunSpec({
 		UpdateRepositoryImpl.isNewer("0.20.1", "0.20.0") shouldBe true
 		UpdateRepositoryImpl.isNewer("0.20.0", "0.20.1") shouldBe false
 		UpdateRepositoryImpl.isNewer("0.20.0-beta.2", "0.20.0-beta.1") shouldBe true
-		UpdateRepositoryImpl.isNewer("0.20.0-beta.4-fork.2", "0.20.0-beta.4-fork.1") shouldBe true
-		UpdateRepositoryImpl.isNewer("0.20.0-beta.4-fork.1", "0.20.0-beta.4-fork.2") shouldBe false
-		UpdateRepositoryImpl.isNewer("0.20.0", "0.20.0-beta.4-fork.1") shouldBe true
+		UpdateRepositoryImpl.isNewer("0.20.0-beta.4-directplay.2", "0.20.0-beta.4-directplay.1") shouldBe true
+		UpdateRepositoryImpl.isNewer("0.20.0-beta.4-directplay.2", "0.20.0-beta.4-fork.1") shouldBe true
+		UpdateRepositoryImpl.isNewer("0.20.0-beta.4-fork.1", "0.20.0-beta.4-directplay.2") shouldBe false
+		UpdateRepositoryImpl.isNewer("0.20.0", "0.20.0-beta.4-directplay.2") shouldBe true
 		UpdateRepositoryImpl.isNewer("0.21.0", "0.20.9") shouldBe true
 		UpdateRepositoryImpl.isNewer("0.20.0", "0.20.0") shouldBe false
 	}

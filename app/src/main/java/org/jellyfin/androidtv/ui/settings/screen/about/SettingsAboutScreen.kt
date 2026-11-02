@@ -38,14 +38,26 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 		}
 
 		item {
-			val heading = "Jellyfin app version"
-			val caption = "jellyfin-androidtv ${BuildConfig.VERSION_NAME} ${BuildConfig.BUILD_TYPE}"
+			val heading = "Jellyfin Direct Play"
+			val caption = "v${BuildConfig.VERSION_NAME} (${BuildConfig.BUILD_TYPE}) • Fork por TSCNEO"
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_jellyfin), contentDescription = null) },
 				headingContent = { Text(heading) },
 				captionContent = { Text(caption) },
 				onClick = copyAction(ClipData.newPlainText(heading, caption)),
 				modifier = Modifier.focusKey("version")
+			)
+		}
+
+		item {
+			val heading = "GitHub Repository"
+			val caption = "https://github.com/TSCNEO/jellyfin-androidtv"
+			ListButton(
+				leadingContent = { Icon(painterResource(R.drawable.ic_info), contentDescription = null) },
+				headingContent = { Text(heading) },
+				captionContent = { Text(caption) },
+				onClick = copyAction(ClipData.newPlainText(heading, caption)),
+				modifier = Modifier.focusKey("github_repo")
 			)
 		}
 

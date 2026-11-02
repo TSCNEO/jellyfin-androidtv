@@ -202,12 +202,14 @@ class UpdateRepositoryImpl(
 				val pre = clean.substringAfter('-', "")
 				val beta = if (pre.contains("beta.")) {
 					pre.substringAfter("beta.").substringBefore('.').substringBefore('-').toIntOrNull() ?: 0
-				} else if (pre.isNotEmpty() && !pre.startsWith("fork.")) {
+				} else if (pre.isNotEmpty() && !pre.startsWith("fork.") && !pre.startsWith("directplay.")) {
 					0
 				} else {
 					999
 				}
-				val fork = if (pre.contains("fork.")) {
+				val fork = if (pre.contains("directplay.")) {
+					pre.substringAfter("directplay.").substringBefore('-').substringBefore('.').toIntOrNull() ?: 0
+				} else if (pre.contains("fork.")) {
 					pre.substringAfter("fork.").substringBefore('-').substringBefore('.').toIntOrNull() ?: 0
 				} else {
 					0

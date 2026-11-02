@@ -709,6 +709,6 @@
     <string name="eac3_atmos">DD+ Atmos</string>
     <string name="truehd_atmos">TrueHD Atmos</string>
     <string name="force_direct_play_title">Force Direct Play (experimental)</string>
-    <string name="force_direct_play_description">Try the original file with the internal player, ignoring codec, bitrate, resolution and HDR limits. No automatic transcoding. May fail or play without sound. Off by default.</string>
+    <string name="force_direct_play_description">Try the original file with the internal player, ignoring codec, bitrate, resolution and HDR limits. No automatic transcoding. May fail or play without sound. Enabled by default.</string>
     <string name="force_direct_play_failed">The original file could not be played. Disable Force Direct Play to use normal playback.</string>
 </resources>

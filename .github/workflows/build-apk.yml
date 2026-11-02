@@ -109,9 +109,11 @@ jobs:
           if [ "$IS_SIGNED" = "true" ]; then
             SRC_APK=$(find app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
             DEST_NAME="Jellyfin-DirectPlay-${VERSION}.apk"
+            GENERIC_NAME="jellyfin-directplay.apk"
           else
             SRC_APK=$(find app/build/outputs/apk/debug/ -name "*.apk" | head -n 1)
             DEST_NAME="Jellyfin-DirectPlay-${VERSION}-debug.apk"
+            GENERIC_NAME="jellyfin-directplay-debug.apk"
           fi
 
           if [ ! -f "$SRC_APK" ]; then
@@ -121,14 +123,18 @@ jobs:
           fi
 
           cp "$SRC_APK" "dist/$DEST_NAME"
+          cp "$SRC_APK" "dist/$GENERIC_NAME"
           cd dist
           sha256sum "$DEST_NAME" > "${DEST_NAME}.sha256"
+          sha256sum "$GENERIC_NAME" > "${GENERIC_NAME}.sha256"
           cat "${DEST_NAME}.sha256"
           cd ..
 
           echo "apk_path=dist/$DEST_NAME" >> "$GITHUB_OUTPUT"
           echo "apk_name=$DEST_NAME" >> "$GITHUB_OUTPUT"
           echo "sha_path=dist/${DEST_NAME}.sha256" >> "$GITHUB_OUTPUT"
+          echo "generic_apk_path=dist/$GENERIC_NAME" >> "$GITHUB_OUTPUT"
+          echo "generic_sha_path=dist/${GENERIC_NAME}.sha256" >> "$GITHUB_OUTPUT"
 
       - name: Verify APK Signature
         if: steps.vars.outputs.has_signing == 'true'
@@ -159,14 +165,17 @@ jobs:
           TAG="v${VERSION}"
           APK="${{ steps.package.outputs.apk_path }}"
           SHA="${{ steps.package.outputs.sha_path }}"
+          GENERIC_APK="${{ steps.package.outputs.generic_apk_path }}"
+          GENERIC_SHA="${{ steps.package.outputs.generic_sha_path }}"
 
           NOTES="### Jellyfin Direct Play ${VERSION}
-          - Fork independiente con **Force Direct Play** (desactiva transcodificaciones innecesarias de HEVC, TrueHD, DTS y perfiles HDR).
+          - Fork independiente con **Force Direct Play** activado por defecto (desactiva transcodificaciones innecesarias de HEVC, TrueHD, DTS y perfiles HDR).
           - Identificador independiente: \`org.jellyfin.androidtv.directplay\` (instalación simultánea con la app oficial).
-          - In-app auto-updater integrado con GitHub Releases.
-          - Basado en Jellyfin Android TV oficial."
+          - Identificador de cliente en servidor: \`Jellyfin Direct Play\`.
+          - In-app auto-updater integrado con GitHub Releases y Downloader URL fija (\`jellyfin-directplay.apk\`).
+          - Mantenido por TSCNEO."
 
-          gh release create "$TAG" "$APK" "$SHA" \
+          gh release create "$TAG" "$APK" "$SHA" "$GENERIC_APK" "$GENERIC_SHA" \
             --title "Jellyfin Direct Play ${VERSION}" \
             --notes "$NOTES" \
-            --latest || gh release upload "$TAG" "$APK" "$SHA" --clobber
+            --latest || gh release upload "$TAG" "$APK" "$SHA" "$GENERIC_APK" "$GENERIC_SHA" --clobber

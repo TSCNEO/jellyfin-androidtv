@@ -72,15 +72,15 @@ Android exige que cada actualización tenga un `versionCode` numéricamente supe
 El cálculo en `app/build.gradle.kts` sigue la regla:
 ```kotlin
 val baseVersionName = project.getVersionName() // Ej: "0.20.0-beta.4"
-val forkRevision = project.getProperty("fork.revision")?.toInt() ?: 1
-versionName = "$baseVersionName-fork.$forkRevision"
+val forkRevision = project.getProperty("fork.revision")?.toInt() ?: 2
+versionName = "$baseVersionName-directplay.$forkRevision"
 
 val baseCode = getVersionCode(baseVersionName) // Ej: 200004
-versionCode = baseCode * 100 + forkRevision   // Ej: 20000401
+versionCode = baseCode * 100 + forkRevision   // Ej: 20000402
 ```
 
 - Si upstream sube de `beta.4` a `0.20.0`, el `baseCode` aumenta automáticamente.
-- Si sacas mejoras del fork sobre la misma versión base de Jellyfin, basta con definir `-Pfork.revision=2` para incrementar el `versionCode` (de `20000401` a `20000402`).
+- Si sacas mejoras del fork sobre la misma versión base de Jellyfin, basta con incrementar `fork.revision` (o definir `-Pfork.revision=3`) para incrementar el `versionCode` (de `20000402` a `20000403`).
 
 ---
 
