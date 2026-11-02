@@ -13,7 +13,7 @@
                 android:startY="30"
                 android:tileMode="clamp">
                 <item
-                    android:color="#AA5CC3"
+                    android:color="#00E676"
                     android:offset="0" />
                 <item
                     android:color="#00A4DC"
@@ -32,7 +32,7 @@
                 android:startY="30"
                 android:tileMode="clamp">
                 <item
-                    android:color="#AA5CC3"
+                    android:color="#00E676"
                     android:offset="0" />
                 <item
                     android:color="#00A4DC"

@@ -104,7 +104,7 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		/**
 		 * Change refresh rate to match media when device supports it
 		 */
-		var refreshRateSwitchingBehavior = enumPreference("refresh_rate_switching_behavior", RefreshRateSwitchingBehavior.DISABLED)
+		var refreshRateSwitchingBehavior = enumPreference("refresh_rate_switching_behavior", RefreshRateSwitchingBehavior.SCALE_ON_DEVICE)
 
 		/**
 		 * Whether ExoPlayer should prefer FFmpeg renderers to core ones.
