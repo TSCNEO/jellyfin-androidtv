@@ -549,8 +549,6 @@
     <string name="video_start_delay">Закъснение при стартиране на видеото</string>
     <string name="playback_buffer_length">Размер на буфера за възпроизвеждане</string>
     <string name="playback_buffer_auto">Автоматично</string>
-    <string name="playback_buffer_large">Голям</string>
-    <string name="playback_buffer_extra_large">Много голям</string>
     <string name="pref_mediasegment_actions">Действия при медийни сегменти</string>
     <string name="segment_action_ask_to_skip">Попитай за прескачане</string>
     <string name="segment_type_preview">Прегледи</string>

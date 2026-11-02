@@ -643,8 +643,6 @@
     <string name="pref_burn_subtitles_when_transcoding_description">Kod dönüştürme sırasında altyazıları her zaman videoya yaz. Bu, altyazı senkronizasyon sorunlarını çözebilir ancak altyazı özelleştirme özelliğini devre dışı bırakır.</string>
     <string name="playback_buffer_length">Oynatma arabellek boyutu</string>
     <string name="playback_buffer_auto">Otomatik</string>
-    <string name="playback_buffer_large">Büyük</string>
-    <string name="playback_buffer_extra_large">Çok büyük</string>
     <string name="playback_info">Oynatma bilgisi</string>
     <string name="playback_info_play_method">Oynatma yöntemi: %1$s</string>
     <string name="playback_info_direct_play">Doğrudan oynatma</string>

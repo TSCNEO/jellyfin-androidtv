@@ -651,8 +651,6 @@
     <string name="tv_provider_enabled">Integrering med Android TV home</string>
     <string name="tv_provider_enabled_description">Vis Jellyfin kanaler og anbefalinger på Android TV\'s hjemmeskærm</string>
     <string name="playback_buffer_length">Afspilnings buffer størrelse</string>
-    <string name="playback_buffer_large">Stor</string>
-    <string name="playback_buffer_extra_large">Ekstra stor</string>
     <string name="pref_burn_subtitles_when_transcoding">Indlejre undertekster når der transkodes</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Brænd altid undertekster ind i videoen under transkodning. Dette kan løse problemer med synkronisering af undertekster, men deaktiverer tilpasning af undertekster.</string>
     <string name="settings_description">Ret appen til efter din egen smag</string>

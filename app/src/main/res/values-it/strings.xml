@@ -646,8 +646,6 @@
     <string name="lbl_date_episode_added">Data aggiunta dell\'episodio</string>
     <string name="playback_buffer_length">Dimensione del buffer di riproduzione</string>
     <string name="playback_buffer_auto">Automatico</string>
-    <string name="playback_buffer_large">Grande</string>
-    <string name="playback_buffer_extra_large">Molto grande</string>
     <string name="pref_burn_subtitles_when_transcoding">Incorpora i sottotitoli durante la transcodifica</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Incorpora sempre i sottotitoli nel video durante la transcodifica. Questo può risolvere i problemi di sincronizzazione dei sottotitoli, ma disabilita la personalizzazione dei sottotitoli.</string>
     <string name="user_avc_level">Livello H.264 (AVC)</string>

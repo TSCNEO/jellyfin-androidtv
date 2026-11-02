@@ -36,6 +36,7 @@ fun SettingsPlaybackBufferLengthScreen() {
 		items(BufferLength.entries) { entry ->
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
+				captionContent = { Text(stringResource(entry.descriptionRes)) },
 				trailingContent = { RadioButton(checked = bufferLength == entry) },
 				onClick = {
 					bufferLength = entry

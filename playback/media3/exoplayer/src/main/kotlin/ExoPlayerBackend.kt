@@ -122,6 +122,17 @@ class ExoPlayerBackend(
 				exoPlayerOptions.bufferForPlaybackDuration?.inWholeMilliseconds?.toInt() ?: DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
 				exoPlayerOptions.bufferForPlaybackAfterRebufferDuration?.inWholeMilliseconds?.toInt() ?: DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
 			)
+			.apply {
+				// Explicit RAM budget for the sample allocator. Without this the allocator is derived from the
+				// track set and a high bitrate stream can exhaust it before the duration thresholds are met.
+				exoPlayerOptions.targetBufferBytes?.let { targetBufferBytes ->
+					setTargetBufferBytes(targetBufferBytes)
+					// Time thresholds must win over the byte budget, otherwise loading stalls permanently
+					// once the budget is full even though minBufferDuration has not been reached yet.
+					setPrioritizeTimeOverSizeThresholds(true)
+				}
+				if (exoPlayerOptions.prioritizeTimeOverSize) setPrioritizeTimeOverSizeThresholds(true)
+			}
 			.build()
 
 		ExoPlayer.Builder(context)

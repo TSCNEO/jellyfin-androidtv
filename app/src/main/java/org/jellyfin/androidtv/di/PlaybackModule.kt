@@ -81,6 +81,8 @@ fun Scope.createPlaybackManager() = playbackManager(androidContext()) {
 		maxBufferDuration = bufferLength.maxBufferDuration,
 		bufferForPlaybackDuration = bufferLength.bufferForPlaybackDuration,
 		bufferForPlaybackAfterRebufferDuration = bufferLength.bufferForPlaybackAfterRebufferDuration,
+		targetBufferBytes = bufferLength.targetBufferBytes,
+		prioritizeTimeOverSize = bufferLength.prioritizeTimeOverSize,
 	)
 	install(exoPlayerPlugin(get(), exoPlayerOptions))
 

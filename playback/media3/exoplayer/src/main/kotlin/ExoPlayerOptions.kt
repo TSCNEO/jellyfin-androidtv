@@ -13,4 +13,13 @@ data class ExoPlayerOptions(
 	val maxBufferDuration: Duration? = null,
 	val bufferForPlaybackDuration: Duration? = null,
 	val bufferForPlaybackAfterRebufferDuration: Duration? = null,
+	/**
+	 * Hard byte budget for the sample allocator, or null to let ExoPlayer size it automatically.
+	 */
+	val targetBufferBytes: Int? = null,
+	/**
+	 * Whether the duration thresholds win over the byte budget. Must be true whenever
+	 * [targetBufferBytes] is set, otherwise loading stalls once the byte budget is reached.
+	 */
+	val prioritizeTimeOverSize: Boolean = false,
 )

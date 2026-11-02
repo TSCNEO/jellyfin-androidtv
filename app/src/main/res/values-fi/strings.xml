@@ -654,8 +654,6 @@
     <string name="tv_provider_enabled_description">Näytä Jellyfinin kanavat ja suositukset Android TV:n kotinäytöllä</string>
     <string name="playback_buffer_length">Toiston bufferin koko</string>
     <string name="playback_buffer_auto">Auto</string>
-    <string name="playback_buffer_large">Iso</string>
-    <string name="playback_buffer_extra_large">Valtava</string>
     <string name="pref_burn_subtitles_when_transcoding">Polta tekstitykset transkoodauksessa</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Aina polta tekstitykset videon päälle transkoodauksessa. Tämä voi korjaa tekstitysten synkronisointivirheitä, mutta deaktivoi tekstitysten mukautuksen.</string>
     <string name="user_avc_level">H.264 (AVC) taso</string>

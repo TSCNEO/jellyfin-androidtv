@@ -599,8 +599,6 @@
     <string name="playback_info_transcoding_note">सर्वर इस फ़ाइल को ट्रांसकोड कर रहा है</string>
     <string name="playback_buffer_length">प्लेबैक बफ़र की लंबाई</string>
     <string name="playback_buffer_auto">ऑटो</string>
-    <string name="playback_buffer_large">बड़ा</string>
-    <string name="playback_buffer_extra_large">बहुत बड़ा</string>
     <string name="pref_burn_subtitles_when_transcoding">ट्रांसकोडिंग करते समय सबटाइटल बर्न करें</string>
     <string name="pref_burn_subtitles_when_transcoding_description">ट्रांसकोडिंग के दौरान हमेशा वीडियो में सबटाइटल बर्न करें। इससे सबटाइटल सिंक की दिक्कतें ठीक हो सकती हैं लेकिन सबटाइटल कस्टमाइज़ेशन बंद हो जाता है।</string>
     <string name="settings">सेटिंग्स</string>

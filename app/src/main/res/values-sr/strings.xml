@@ -629,8 +629,6 @@
     <string name="backdrop_behavior_without_blur">Незамућена позадина</string>
     <string name="playback_buffer_length">Величина бафера за репродукцију</string>
     <string name="playback_buffer_auto">Аутоматски</string>
-    <string name="playback_buffer_large">Велики</string>
-    <string name="playback_buffer_extra_large">Врло велики</string>
     <string name="pref_burn_subtitles_when_transcoding">Утисни титлове током транскодовања</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Увек утисни титлове у видео снимак током транскодовања. Ово ће решити проблем синхронизације титлова, али ће и онемогућити промену њиховог изгледа.</string>
     <string name="user_avc_level">H.264 (AVC) ниво</string>

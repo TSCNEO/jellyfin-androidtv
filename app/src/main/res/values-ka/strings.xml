@@ -164,7 +164,6 @@
     <string name="eac3">DD+</string>
     <string name="random">შემთხვევით</string>
     <string name="playback_buffer_auto">ავტო</string>
-    <string name="playback_buffer_large">დიდი</string>
     <string name="segment_action_skip">გამოტოვება</string>
     <string name="segment_type_commercial">რეკლამა</string>
     <string name="segment_type_intro">შესავალი</string>
@@ -350,7 +349,6 @@
     <string name="all_channels">ყველა არხი</string>
     <string name="current_queue">მიმდინარე რიგი</string>
     <string name="past_week">გასული კვირა</string>
-    <string name="playback_buffer_extra_large">ძალიან დიდი</string>
     <string name="segment_action_nothing">არაფრის გაკეთება</string>
     <string name="segment_type_unknown">უცნობი სეგმენტები</string>
     <string name="fast_forward">წინ გადახვევა</string>

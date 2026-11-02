@@ -681,8 +681,6 @@
     <string name="pref_burn_subtitles_when_transcoding">حرق الترجمات عند تحويل الترميز</string>
     <string name="playback_buffer_length">حجم مخزن التشغيل المؤقت</string>
     <string name="playback_buffer_auto">تلقائي</string>
-    <string name="playback_buffer_large">كبير</string>
-    <string name="playback_buffer_extra_large">كبير جدًا</string>
     <string name="playback_info">معلومات التشغيل</string>
     <string name="playback_info_play_method">طريقة التشغيل: %1$s</string>
     <string name="playback_info_direct_play">تشغيل مباشر</string>

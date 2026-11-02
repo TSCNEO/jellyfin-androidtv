@@ -675,8 +675,6 @@
     <string name="playback_info_transcoding_note">Сервер перекодирует файл</string>
     <string name="playback_buffer_length">Размер буфера воспроизведения</string>
     <string name="playback_buffer_auto">Авто</string>
-    <string name="playback_buffer_large">Большой</string>
-    <string name="playback_buffer_extra_large">Очень большой</string>
     <string name="pref_burn_subtitles_when_transcoding">Вшивать субтитры при перекодировании</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Всегда вшивать субтитры в видео при перекодировании. Это может помочь исправить проблемы с синхронизацией субтитров, но отключит стилизацию субтитров.</string>
     <string name="lbl_date_show_added">Дата добавления сериала</string>

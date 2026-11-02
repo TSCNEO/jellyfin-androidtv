@@ -639,8 +639,6 @@
     <string name="playback_info_video_range">Gamă dinamică: %1$s</string>
     <string name="playback_buffer_length">Dimensiune buffer redare</string>
     <string name="playback_buffer_auto">Automat</string>
-    <string name="playback_buffer_large">Mare</string>
-    <string name="playback_buffer_extra_large">Foarte mare</string>
     <string name="pref_burn_subtitles_when_transcoding">Integreazǎ subtitrările la transcodare</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Integrează întotdeauna subtitrările în video în timpul transcodării. Acest lucru poate rezolva problemele de sincronizare ale subtitrărilor, dar dezactivează personalizarea subtitrărilor.</string>
     <string name="user_avc_level">Nivel H.264 (AVC)</string>

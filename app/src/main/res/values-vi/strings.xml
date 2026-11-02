@@ -622,8 +622,6 @@
     <string name="playback_info_transcoding_note">Máy chủ đang chuyển mã tập tin này</string>
     <string name="playback_buffer_length">Kích thước bộ đệm phát lại</string>
     <string name="playback_buffer_auto">Tự động</string>
-    <string name="playback_buffer_large">Lớn</string>
-    <string name="playback_buffer_extra_large">Cực lớn</string>
     <string name="pref_burn_subtitles_when_transcoding">Ghi phụ đề khi chuyển mã</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Luôn ghi phụ đề vào video trong quá trình chuyển mã. Điều này có thể khắc phục sự cố đồng bộ hóa phụ đề nhưng vô hiệu hóa tùy chỉnh phụ đề.</string>
     <string name="backdrop_behavior_with_blur">Phông nền mờ</string>

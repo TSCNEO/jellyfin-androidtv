@@ -658,8 +658,6 @@
     <string name="playback_info_transcoding_note">Сервер перекодує цей файл</string>
     <string name="playback_buffer_length">Розмір буфера відтворення</string>
     <string name="playback_buffer_auto">Авто</string>
-    <string name="playback_buffer_large">Великий</string>
-    <string name="playback_buffer_extra_large">Дуже великий</string>
     <string name="pref_burn_subtitles_when_transcoding">Вшити (burn-in) субтитри під час перекодування</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Завжди вшити (burn-in) субтитри у відео під час перекодування. Це може вирішити проблеми синхронізації субтитрів, але вимикає налаштування субтитрів.</string>
     <string name="preference_codecs_summary">Перевизначення можливостей відтворення (кодеків) повідомлених пристроєм</string>

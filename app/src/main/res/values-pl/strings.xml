@@ -663,8 +663,6 @@
     <string name="pref_burn_subtitles_when_transcoding_description">Zawsze wypalaj napisy na filmie podczas transkodowania. Może to rozwiązać problemy z synchronizacją napisów, ale wyłącza możliwość ich personalizacji.</string>
     <string name="playback_buffer_length">Rozmiar bufora odtwarzania</string>
     <string name="playback_buffer_auto">Automatyczny</string>
-    <string name="playback_buffer_large">Duży</string>
-    <string name="playback_buffer_extra_large">Bardzo duży</string>
     <string name="playback_info">Informacje o odtwarzaniu</string>
     <string name="playback_info_play_method">Metoda odtwarzania: %1$s</string>
     <string name="playback_info_direct_play">Odtwarzanie bezpośrednie</string>

@@ -644,8 +644,6 @@
     <string name="playback_info_transcoding_note">Server vykonáva prekódovanie tohto súboru</string>
     <string name="playback_buffer_length">Veľkosť vyrovnávacej pamäte prehrávania</string>
     <string name="playback_buffer_auto">Automaticky</string>
-    <string name="playback_buffer_large">Veľká</string>
-    <string name="playback_buffer_extra_large">Extra veľká</string>
     <string name="pref_burn_subtitles_when_transcoding">Vypaľovať titulky pri prekódovaní</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Pri prekódovaní vždy vypáliť titulky do videa. Môže to vyriešiť problémy so synchronizáciou titulkov, ale znemožní prispôsobenie titulkov.</string>
     <string name="backdrop_behavior_with_blur">Pozadie s rozmazaním</string>

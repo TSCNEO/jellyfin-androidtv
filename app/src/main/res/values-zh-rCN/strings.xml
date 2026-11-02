@@ -610,8 +610,6 @@
     <string name="backdrop_behavior_without_blur">无模糊背景</string>
     <string name="playback_buffer_length">播放缓存大小</string>
     <string name="playback_buffer_auto">自动</string>
-    <string name="playback_buffer_large">大</string>
-    <string name="playback_buffer_extra_large">超大</string>
     <string name="pref_burn_subtitles_when_transcoding">转码时插入字幕</string>
     <string name="pref_burn_subtitles_when_transcoding_description">在转码过程中，始终将字幕刻录到视频中。这可以修复字幕同步问题，但禁用外挂字幕。</string>
     <string name="codec_level_warning">如果您的设备实际上不支持所选级别，则自动切换这可能会导致播放问题。</string>

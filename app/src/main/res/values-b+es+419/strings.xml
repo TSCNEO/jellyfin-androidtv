@@ -617,8 +617,6 @@
     <string name="playback_info_transcoding_note">El servidor esta transcodificando este archivo</string>
     <string name="playback_buffer_length">Tamaño de buffer de reproducción</string>
     <string name="playback_buffer_auto">Automático</string>
-    <string name="playback_buffer_large">Grande</string>
-    <string name="playback_buffer_extra_large">Extra grande</string>
     <string name="pref_burn_subtitles_when_transcoding">Incrustar subtítulos mientras se transcodifica</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Siempre incrustar los subtítulos en el video durante la transcodificación. Esto puede solucionar problemas de sincronización de subtítulos, pero desactiva la personalización de los mismos.</string>
     <string name="pref_playback_prerolls">Pre enrollados</string>

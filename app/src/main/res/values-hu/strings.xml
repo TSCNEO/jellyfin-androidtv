@@ -602,8 +602,6 @@
     <string name="playback_info_transcoding_note">A szerver transzkódolja ezt a fájlt</string>
     <string name="playback_buffer_length">Lejátszás puffer méret</string>
     <string name="playback_buffer_auto">Automatikus</string>
-    <string name="playback_buffer_large">Nagy</string>
-    <string name="playback_buffer_extra_large">Extra nagy</string>
     <string name="pref_burn_subtitles_when_transcoding">Feliratok beírása átkódoláskor</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Mindig írjon feliratot a videóba átkódoláskor. Ez megoldhatja a feliratszinkronizációs problémákat, de letiltja a felirat testreszabását.</string>
     <string name="settings_description">Változtasd meg az alkalmazást a saját ízlésed szerint</string>

@@ -652,8 +652,6 @@
     <string name="pref_burn_subtitles_when_transcoding">Incrusta els subtítols durant la transcodificació</string>
     <string name="playback_buffer_length">Mida de la memòria intermèdia de reproducció</string>
     <string name="playback_buffer_auto">Automàtic</string>
-    <string name="playback_buffer_large">Gran</string>
-    <string name="playback_buffer_extra_large">Extra gran</string>
     <string name="playback_info_transcoding_note">El servidor està transcodificant aquest fitxer</string>
     <string name="playback_info_video_range">Rang de vídeo: %1$s</string>
     <string name="playback_info_channels">Canals: %1$d</string>

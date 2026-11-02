@@ -629,8 +629,6 @@
     <string name="tv_provider_enabled_description">___________ ____ _________ ________ ___________ ____________ ________________ _____________</string>
     <string name="playback_buffer_length">_______ _____ ____</string>
     <string name="playback_buffer_auto">_____</string>
-    <string name="playback_buffer_large">_____</string>
-    <string name="playback_buffer_extra_large">_____ _______</string>
     <string name="pref_burn_subtitles_when_transcoding">______________ ________ ____ ___ ______ _____ ___ _____</string>
     <string name="pref_burn_subtitles_when_transcoding_description">டிரான்ஸ்கோடிங் செய்யும்போதே சப்டைட்டில்களை வீடியோவில் உட்பொதித்துவிடவும். இது சப்டைட்டில் ஒத்திசைவுச் சிக்கல்களைச் சரிசெய்யக்கூடும், ஆனால் சப்டைட்டில்களைத் தனிப்பயனாக்கும் வசதியை முடக்கிவிடும்.</string>
     <string name="pref_playback_media_segments">_____ _________</string>

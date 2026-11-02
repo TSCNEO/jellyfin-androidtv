@@ -530,8 +530,6 @@
     <string name="video_start_delay">หน่วงเวลาก่อนเริ่มเล่นวิดีโอ</string>
     <string name="playback_buffer_length">ขนาดบัฟเฟอร์การเล่น</string>
     <string name="playback_buffer_auto">อัตโนมัติ</string>
-    <string name="playback_buffer_large">ใหญ่</string>
-    <string name="playback_buffer_extra_large">ใหญ่พิเศษ</string>
     <string name="segment_action_skip">ข้าม</string>
     <string name="segment_type_commercial">โฆษณา</string>
     <string name="segment_type_intro">ช่วงเปิดรายการ</string>

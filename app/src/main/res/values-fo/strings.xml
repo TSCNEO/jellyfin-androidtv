@@ -258,8 +258,6 @@
     <string name="past_24_hours">Síðstu 24 tímar</string>
     <string name="playback_buffer_length">Spælitippistødd</string>
     <string name="playback_buffer_auto">Sjálvvirkandi</string>
-    <string name="playback_buffer_large">Stórt</string>
-    <string name="playback_buffer_extra_large">Eyka stórt</string>
     <string name="segment_action_ask_to_skip">Spyr um at leypa um</string>
     <string name="segment_action_nothing">Ger einki</string>
     <string name="segment_action_skip">Leyp um</string>

@@ -97,3 +97,25 @@ Al solicitar actualizar la aplicación desde el menú *Acerca de* (`SettingsAbou
 - Si el permiso no está otorgado, la aplicación lanza inmediatamente el intent interactivo del sistema Android TV (`Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES`) apuntando al paquete `package:org.jellyfin.androidtv.directplay`.
 - Mediante un observador de ciclo de vida (`ON_RESUME`), cuando el usuario concede el permiso y regresa a Jellyfin, la comprobación, descarga e instalación se reanuda de manera transparente y automática.
 
+
+---
+
+## 5. Optimización de Búfer de Red en RAM (`DefaultLoadControl`)
+
+### Contexto y Problema Técnico
+En ExoPlayer (y Media3), la gestión por defecto del búfer (`DefaultLoadControl`) dimensiona el asignador de muestras en función del conjunto de pistas activas y aplica límites de memoria derivados de perfiles genéricos (~130 MB). Al reproducir contenidos de streaming o archivos locales con bitrates muy elevados (remuxes 4K UHD Blu-ray con picos superiores a 80-100 Mbps), el búfer por defecto se agota con facilidad o se detiene prematuramente al alcanzar el límite estricto de bytes antes de cumplir los umbrales de duración temporal, provocando paradas e interrupciones constantes ("hipo" o re-buffering).
+
+### Solución Implementada
+El fork **Jellyfin Direct Play** reestructura el control de carga tanto en `VideoManager.java` (backend legacy) como en `ExoPlayerBackend.kt` (Media3) y `PlaybackModule.kt`, introduciendo cuatro modos seleccionables en **Ajustes → Reproducción → Avanzado → Búfer de red (RAM)**:
+
+| Modo | Nombre en UI | Duración (Min..Max) | Límite de RAM (`targetBufferBytes`) | Priorizar tiempo sobre tamaño | Caso de uso recomendado |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **AUTO** | Adaptativo (Recomendado) | 25s .. 60s | Dinámico / Automático | `true` | Ajuste dinámico inteligente para conexiones estándar y alta definición. |
+| **HIGH** | Alto | 25s .. 60s | **256 MB** | `true` | Ideal para Wi-Fi de alta velocidad o remuxes 4K con picos extremos de bitrate. |
+| **STANDARD** | Estándar | Por defecto ExoPlayer | Por defecto (~130 MB) | `false` | Comportamiento estándar de upstream. |
+| **LOW** | Bajo | 15s .. 30s | **64 MB** | `false` | Para dispositivos Android TV con memoria RAM muy limitada. |
+
+#### El Fix de `DefaultLoadControl`
+Para evitar que ExoPlayer detenga la precarga al alcanzar el límite de bytes antes de acumular suficientes segundos de reproducción, se configura explícitamente:
+- `.setTargetBufferBytes(targetBufferBytes)` (cuando aplique).
+- `.setPrioritizeTimeOverSizeThresholds(true)`: Asegura que el umbral temporal (`minBufferDuration`) prevalezca sobre el límite de tamaño, evitando bloqueos de carga en streams de alto bitrate.

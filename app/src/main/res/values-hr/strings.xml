@@ -642,8 +642,6 @@
     <string name="playback_info_transcoding_note">Poslužitelj transkodira ovu datoteku</string>
     <string name="playback_buffer_length">Veličina spremnika za reprodukciju</string>
     <string name="playback_buffer_auto">Automatski</string>
-    <string name="playback_buffer_large">Veliko</string>
-    <string name="playback_buffer_extra_large">Jako veliko</string>
     <string name="pref_burn_subtitles_when_transcoding">Ugradi titlove pri transkodiranju</string>
     <string name="pref_burn_subtitles_when_transcoding_description">Uvijek ugrađuje titlove u video tijekom reprodukcije. Ovo može popraviti probleme sa sinkronizacijom ali onemogućuje uređivanje titlova.</string>
     <string name="backdrop_behavior_with_blur">Zamućeni vizual</string>

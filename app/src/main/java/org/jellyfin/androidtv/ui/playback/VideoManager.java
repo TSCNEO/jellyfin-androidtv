@@ -254,19 +254,46 @@ public class VideoManager {
         }
 
         BufferLength bufferLength = userPreferences.get(UserPreferences.Companion.getBufferLength());
-        DefaultLoadControl loadControl;
-        if (bufferLength == BufferLength.LARGE) {
-            loadControl = new DefaultLoadControl.Builder()
-                    .setBufferDurationsMs(50_000, 120_000, 2_500, 5_000)
-                    .build();
-        } else if (bufferLength == BufferLength.EXTRA_LARGE) {
-            loadControl = new DefaultLoadControl.Builder()
-                    .setBufferDurationsMs(80_000, 240_000, 5_000, 10_000)
-                    .build();
-        } else {
-            loadControl = new DefaultLoadControl();
+        // Durations are kotlin.time.Duration value classes (not callable from Java), so the millisecond
+        // thresholds are mirrored here. Keep in sync with BufferLength.minBufferDuration /
+        // maxBufferDuration / bufferForPlaybackDuration / bufferForPlaybackAfterRebufferDuration.
+        int minBufferMs = DefaultLoadControl.DEFAULT_MIN_BUFFER_MS;
+        int maxBufferMs = DefaultLoadControl.DEFAULT_MAX_BUFFER_MS;
+        int bufferForPlaybackMs = DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS;
+        int bufferForPlaybackAfterRebufferMs = DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS;
+        switch (bufferLength) {
+            case AUTO:
+            case HIGH:
+                minBufferMs = 25_000;
+                maxBufferMs = 60_000;
+                bufferForPlaybackMs = 1_500;
+                bufferForPlaybackAfterRebufferMs = 3_000;
+                break;
+            case LOW:
+                minBufferMs = 15_000;
+                maxBufferMs = 30_000;
+                break;
+            case STANDARD:
+            default:
+                // Stock ExoPlayer thresholds, nothing to override.
+                break;
         }
-        exoPlayerBuilder.setLoadControl(loadControl);
+
+        DefaultLoadControl.Builder loadControlBuilder = new DefaultLoadControl.Builder()
+                .setBufferDurationsMs(minBufferMs, maxBufferMs, bufferForPlaybackMs, bufferForPlaybackAfterRebufferMs);
+
+        Integer targetBufferBytes = bufferLength.getTargetBufferBytes();
+        if (targetBufferBytes != null) {
+            // Explicit RAM budget for the sample allocator (256 MB for HIGH, 64 MB for LOW).
+            loadControlBuilder.setTargetBufferBytes(targetBufferBytes);
+        }
+        if (targetBufferBytes != null || bufferLength.getPrioritizeTimeOverSize()) {
+            // Without this, ExoPlayer stops loading as soon as the byte budget is exhausted even when
+            // minBufferDuration has not been reached yet, which shows up as endless re-buffering on
+            // high bitrate streams.
+            loadControlBuilder.setPrioritizeTimeOverSizeThresholds(true);
+        }
+        exoPlayerBuilder.setLoadControl(loadControlBuilder.build());
 
         exoPlayerBuilder.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)

@@ -630,8 +630,6 @@
     <string name="filters">מסננים</string>
     <string name="playback_buffer_length">גודל באפר לניגון</string>
     <string name="playback_buffer_auto">אוטומטי</string>
-    <string name="playback_buffer_large">גדול</string>
-    <string name="playback_buffer_extra_large">גדול במיוחד</string>
     <string name="pref_burn_subtitles_when_transcoding">צרוב כתוביות במהלך קידוד מחדש</string>
     <string name="pref_burn_subtitles_when_transcoding_description">צרוב תמיד כתוביות לתוך הוידאו בזמן קידוד מחדש. זה יכול לתקן בעיות סנכרון בכתוביות אך הדבר מבטל עיצוב בהתאמה אישית.</string>
     <string name="backdrop_behavior_with_blur">תמונת רקע מטושטשת</string>

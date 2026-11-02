@@ -606,8 +606,6 @@
     <string name="playback_video_player_external_empty">デバイスに、Jellyfin の動画再生が可能な動画プレーヤーアプリがインストールされていません。</string>
     <string name="playback_buffer_auto">自動</string>
     <string name="playback_buffer_length">再生バッファサイズ</string>
-    <string name="playback_buffer_large">大</string>
-    <string name="playback_buffer_extra_large">特大</string>
     <string name="pref_burn_subtitles_when_transcoding">トランスコード時に字幕を焼き込む</string>
     <string name="pref_burn_subtitles_when_transcoding_description">トランスコード時、常に字幕を動画に焼き込みます。これにより字幕の同期問題は解決されますが、字幕のカスタマイズはできなくなります。</string>
     <string name="backdrop_behavior_with_blur">ぼかし効果のある背景</string>
