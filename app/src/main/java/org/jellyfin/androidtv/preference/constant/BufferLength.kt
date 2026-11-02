@@ -6,8 +6,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-/** 512 MiB, the byte budget reserved by the [BufferLength.AGGRESSIVE] profile. */
-const val AGGRESSIVE_BUFFER_BYTES: Int = 512 * 1024 * 1024
+/** 288 MiB, the byte budget reserved by the [BufferLength.AGGRESSIVE] profile.
+ * Sized safely below Android TV's 384 MB JVM heap ceiling (dalvik.vm.heapsize) leaving ~96 MB for UI & bitmaps. */
+const val AGGRESSIVE_BUFFER_BYTES: Int = 288 * 1024 * 1024
 
 /** 256 MiB, the byte budget reserved by the [BufferLength.HIGH] profile. */
 const val HIGH_BUFFER_BYTES: Int = 256 * 1024 * 1024
@@ -57,11 +58,10 @@ enum class BufferLength(
 	),
 
 	/**
-	 * Aggressive profile for boxes with 3 GB of RAM or more (Homatics, Shield). Reserves a 512 MiB
-	 * sample budget and grows the window to 60-120 seconds: enough headroom to absorb bitrate spikes
-	 * of 4K remuxes (80-120 Mbps) over Wi-Fi without a single re-buffer. The settings screen hides
-	 * this entry on devices with less than 3 GB of RAM because the allocator would be killed by the
-	 * low memory killer before the budget is filled.
+	 * Aggressive profile for boxes with 3 GB of RAM or more (Homatics, Shield). Reserves a 288 MiB
+	 * sample budget (tuned to stay comfortably inside Android TV's 384 MB heap ceiling without OOM kills)
+	 * and grows the window to 60-120 seconds: enough headroom to absorb bitrate spikes of 4K remuxes
+	 * without a single re-buffer. The settings screen hides this entry on devices with less than 3 GB of RAM.
 	 */
 	AGGRESSIVE(
 		nameRes = R.string.playback_buffer_aggressive,

@@ -97,7 +97,7 @@ El fork **Jellyfin Direct Play** reestructura el control de carga tanto en `Vide
 | Modo | Nombre en UI | Duración (Min..Max) | Límite de RAM (`targetBufferBytes`) | Priorizar tiempo sobre tamaño | Caso de uso recomendado |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **AUTO** | Adaptativo | 25s .. 60s | Dinámico (hasta 256 MB) | `true` | Ajuste dinámico inteligente para la mayoría de streams. |
-| **AGGRESSIVE** | Agresivo | 60s .. 120s | **512 MB** | `true` | Dispositivos con 3 GB de RAM o más (filtrado dinámicamente en UI). Máximo colchón contra hipo. |
+| **AGGRESSIVE** | Agresivo | 60s .. 120s | **288 MB** | `true` | Dispositivos con 3 GB de RAM o más (filtrado dinámicamente en UI). Calibrado para no rebasar el límite ART Dalvik de 384 MB (`dalvik.vm.heapsize`). |
 | **HIGH** | Alto | 25s .. 60s | **256 MB** | `true` | Ideal para Wi-Fi o remuxes 4K de alto bitrate. |
 | **STANDARD** | Estándar | Por defecto ExoPlayer | Por defecto (~130 MB) | `false` | Comportamiento estándar de upstream. |
 | **LOW** | Bajo | 15s .. 30s | **64 MB** | `false` | Para dispositivos con poca memoria libre. |
