@@ -5,9 +5,12 @@ import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import org.jellyfin.androidtv.BuildConfig
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.Icon
@@ -19,10 +22,25 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.jellyfin.androidtv.ui.settings.util.copyAction
+import org.jellyfin.androidtv.update.UpdateRepository
+import org.jellyfin.androidtv.update.UpdateState
+import org.koin.compose.koinInject
 
 @Composable
 fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 	val router = LocalRouter.current
+	val updateRepository = koinInject<UpdateRepository>()
+	val updateState by updateRepository.state.collectAsState()
+	val latestUpdateState by rememberUpdatedState(updateState)
+
+	// Auto-resume the install flow: the user leaves the app to grant "install unknown apps",
+	// so re-evaluate the permission and continue the download/install without extra taps.
+	LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+		val wasWaitingForPermission = latestUpdateState is UpdateState.NeedsPermission
+		if (updateRepository.checkPermission() && wasWaitingForPermission) {
+			updateRepository.downloadAndInstall()
+		}
+	}
 
 	SettingsColumn {
 		if (launchedFromLogin) item {
@@ -62,18 +80,16 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 		}
 
 		item {
-			val updateRepository = org.koin.compose.koinInject<org.jellyfin.androidtv.update.UpdateRepository>()
-			val updateState by updateRepository.state.collectAsState()
 			val caption = when (val state = updateState) {
-				is org.jellyfin.androidtv.update.UpdateState.Idle,
-				is org.jellyfin.androidtv.update.UpdateState.Unsupported -> stringResource(R.string.pref_check_updates_title)
-				is org.jellyfin.androidtv.update.UpdateState.Checking -> stringResource(R.string.loading)
-				is org.jellyfin.androidtv.update.UpdateState.UpToDate -> stringResource(R.string.pref_update_up_to_date)
-				is org.jellyfin.androidtv.update.UpdateState.Available -> "${stringResource(R.string.pref_update_available)}: v${state.update.version}"
-				is org.jellyfin.androidtv.update.UpdateState.Downloading -> "${stringResource(R.string.pref_update_downloading)} ${(state.progress * 100).toInt()}%"
-				is org.jellyfin.androidtv.update.UpdateState.Installing -> stringResource(R.string.pref_update_installing)
-				is org.jellyfin.androidtv.update.UpdateState.NeedsPermission -> stringResource(R.string.pref_update_permission_required_desc)
-				is org.jellyfin.androidtv.update.UpdateState.Failed -> state.message
+				is UpdateState.Idle,
+				is UpdateState.Unsupported -> stringResource(R.string.pref_check_updates_title)
+				is UpdateState.Checking -> stringResource(R.string.loading)
+				is UpdateState.UpToDate -> stringResource(R.string.pref_update_up_to_date)
+				is UpdateState.Available -> "${stringResource(R.string.pref_update_available)}: v${state.update.version}"
+				is UpdateState.Downloading -> "${stringResource(R.string.pref_update_downloading)} ${(state.progress * 100).toInt()}%"
+				is UpdateState.Installing -> stringResource(R.string.pref_update_installing)
+				is UpdateState.NeedsPermission -> stringResource(R.string.pref_update_permission_required_desc)
+				is UpdateState.Failed -> state.message
 			}
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_guide), contentDescription = null) },
@@ -81,9 +97,9 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 				captionContent = { Text(caption) },
 				onClick = {
 					when (updateState) {
-						is org.jellyfin.androidtv.update.UpdateState.Available,
-						is org.jellyfin.androidtv.update.UpdateState.NeedsPermission,
-						is org.jellyfin.androidtv.update.UpdateState.Failed -> updateRepository.downloadAndInstall()
+						is UpdateState.Available,
+						is UpdateState.NeedsPermission,
+						is UpdateState.Failed -> updateRepository.downloadAndInstall()
 						else -> updateRepository.check(manual = true)
 					}
 				},

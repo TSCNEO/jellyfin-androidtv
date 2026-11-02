@@ -68,3 +68,32 @@ var refreshRateSwitchingBehavior = enumPreference(
 
 - **`SCALE_ON_DEVICE`:** Al iniciar la reproducción, ExoPlayer sincroniza el modo de pantalla del sistema operativo Android TV con la cadencia exacta del stream (por ejemplo conmutando la salida HDMI a `3840x2160 @ 23.976 Hz` o `24.000 Hz`), manteniendo el escalado de resolución en la GPU del reproductor para transiciones limpias y fluidas.
 - **Persistencia de Elección:** Si el usuario modifica voluntariamente este ajuste en las opciones de la app (cambiando a *Escala en TV* o *Desactivado*), el valor personalizado se respeta y persiste entre actualizaciones.
+
+---
+
+## 3. Badges Técnicos Dinámicos en ExoPlayer OSD
+
+### Arquitectura de `PlaybackBadgesHelper`
+En versiones anteriores, el OSD de reproducción únicamente presentaba el badge genérico de Dolby Vision si estaba presente. En Jellyfin Direct Play se incorpora **`PlaybackBadgesHelper`** para poblar dinámicamente tanto la interfaz de Leanback (`CustomPlaybackOverlayFragment` / `vlc_player_interface.xml`) como Compose (`VideoPlayerHeader`):
+
+* **Vídeo (HDR / Rango Dinámico & Resolución)**:
+  - **Dolby Vision**: Identificado vía `VideoRangeType.DOVI`, `DOVI_WITH_HDR10`, `DOVI_WITH_HDR10_PLUS`, etc. Badge: `Dolby Vision`.
+  - **HDR10+**: Detectado para streams `VideoRangeType.HDR10_PLUS` y combinaciones duales `DOVI_WITH_HDR10_PLUS`.
+  - **HDR10**: Identificado para `VideoRangeType.HDR10` o perfiles HDR base.
+  - **HLG**: Detección de emisiones con curva Hybrid Log-Gamma (`VideoRangeType.HLG`).
+  - **Resolución**: Cálculo dinámico en píxeles (`4K`, `1080p`, `720p`).
+* **Audio de Objeto y Alta Definición (Dolby Atmos / DTS-HD / Lossless)**:
+  - **Dolby Atmos prioritario**: Si el stream contiene metadatos Atmos en perfil o título, se genera un badge resaltado con diseño de acento (`#00A4DC`), especializando según el contenedor base: `TrueHD Atmos` (Lossless), `DD+ Atmos` (Streaming/E-AC-3) o `Dolby Atmos`.
+  - **Codecs HD**: Identificación de `TrueHD`, `DTS:X`, `DTS-HD MA`, `DTS`, `DD+`, `Dolby Digital`, `FLAC`, `AAC`, `OPUS`.
+  - **Canales**: Mapeo estricto del diseño acústico (`7.1`, `5.1(side)`, `5.1`, `2.0`).
+* **Sincronización Dinámica**: Los badges se recalculan automáticamente en tiempo real tanto al abrir el OSD como al conmutar entre pistas de audio multicanal.
+
+---
+
+## 4. Flujo Interactivo de Permiso de Fuentes Desconocidas
+
+Al solicitar actualizar la aplicación desde el menú *Acerca de* (`SettingsAboutScreen`):
+- Se verifica `packageManager.canRequestPackageInstalls()`.
+- Si el permiso no está otorgado, la aplicación lanza inmediatamente el intent interactivo del sistema Android TV (`Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES`) apuntando al paquete `package:org.jellyfin.androidtv.directplay`.
+- Mediante un observador de ciclo de vida (`ON_RESUME`), cuando el usuario concede el permiso y regresa a Jellyfin, la comprobación, descarga e instalación se reanuda de manera transparente y automática.
+

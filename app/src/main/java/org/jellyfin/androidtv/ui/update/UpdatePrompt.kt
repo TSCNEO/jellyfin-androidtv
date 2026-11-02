@@ -62,8 +62,19 @@ fun UpdatePrompt() {
 			UpdatePromptContent(
 				state = state,
 				onDismiss = { updateRepository.dismissPrompt() },
-				onUpdate = { updateRepository.downloadAndInstall() },
-				onOpenSettings = { updateRepository.openInstallPermissionSettings() },
+				onUpdate = {
+					// Never dead-end on the install permission gate: if "install unknown apps"
+					// is not granted, send the user straight to the system settings screen.
+					if (!updateRepository.checkPermission()) {
+						updateRepository.openInstallPermissionSettings()
+					} else {
+						updateRepository.downloadAndInstall()
+					}
+				},
+				onOpenSettings = {
+					updateRepository.checkPermission()
+					updateRepository.openInstallPermissionSettings()
+				},
 			)
 		}
 	}

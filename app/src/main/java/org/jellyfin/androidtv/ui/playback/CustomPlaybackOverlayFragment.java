@@ -76,6 +76,7 @@ import org.jellyfin.androidtv.util.sdk.BaseItemExtensionsKt;
 import org.jellyfin.sdk.model.api.BaseItemDto;
 import org.jellyfin.sdk.model.api.BaseItemKind;
 import org.jellyfin.sdk.model.api.ChapterInfo;
+import org.jellyfin.sdk.model.api.MediaSourceInfo;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -716,6 +717,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         // Already showing!
         if (mIsVisible) return;
 
+        updateBadges();
         binding.topPanel.startAnimation(slideDown);
         mIsVisible = true;
         binding.skipOverlay.setSkipUiEnabled(!mIsVisible && !mGuideVisible && !mPopupPanelVisible);
@@ -1270,7 +1272,43 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
             } else {
                 prepareChapterAdapter();
             }
+
+            updateBadges();
         }
+    }
+
+    /**
+     * Refresh the technical badges (resolution, HDR, audio codec, channels) shown under the subtitle.
+     */
+    private void updateBadges() {
+        if (binding == null || getContext() == null) return;
+
+        binding.badgesContainer.removeAllViews();
+
+        PlaybackController controller = playbackControllerContainer.getValue().getPlaybackController();
+        if (controller == null) return;
+
+        BaseItemDto item = controller.getCurrentlyPlayingItem();
+        MediaSourceInfo mediaSource = controller.getCurrentMediaSource();
+        Integer audioIndex = null;
+        try {
+            audioIndex = controller.getAudioStreamIndex();
+        } catch (Exception ignored) {
+            // Audio index is best effort - fall back to the default stream.
+        }
+
+        List<BadgeInfo> badges = PlaybackBadgesHelper.INSTANCE.getBadges(item, mediaSource, audioIndex);
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        for (BadgeInfo badge : badges) {
+            TextView view = (TextView) inflater.inflate(R.layout.player_badge_item, binding.badgesContainer, false);
+            view.setText(badge.getText());
+            if (badge.isHighlight()) {
+                view.setBackgroundResource(R.drawable.player_badge_background_highlight);
+                view.setTypeface(view.getTypeface(), android.graphics.Typeface.BOLD);
+            }
+            binding.badgesContainer.addView(view);
+        }
+        binding.badgesContainer.setVisibility(badges.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
     public void clearSkipOverlay() {

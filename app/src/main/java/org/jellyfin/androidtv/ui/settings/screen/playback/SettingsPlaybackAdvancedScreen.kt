@@ -140,23 +140,11 @@ fun SettingsPlaybackAdvancedScreen() {
 				Dv7FallbackMode.ALWAYS -> R.string.pref_dv7_fallback_always
 				Dv7FallbackMode.DISABLED -> R.string.pref_dv7_fallback_disabled
 			}
-			val summaryRes = when (dv7FallbackMode) {
-				Dv7FallbackMode.AUTO -> R.string.pref_dv7_fallback_auto_summary
-				Dv7FallbackMode.ALWAYS -> R.string.pref_dv7_fallback_always_summary
-				Dv7FallbackMode.DISABLED -> R.string.pref_dv7_fallback_disabled_summary
-			}
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_dv7_fallback_title)) },
-				captionContent = { Text(stringResource(summaryRes)) },
-				trailingContent = { Text(stringResource(labelRes)) },
-				onClick = {
-					dv7FallbackMode = when (dv7FallbackMode) {
-						Dv7FallbackMode.AUTO -> Dv7FallbackMode.ALWAYS
-						Dv7FallbackMode.ALWAYS -> Dv7FallbackMode.DISABLED
-						Dv7FallbackMode.DISABLED -> Dv7FallbackMode.AUTO
-					}
-				},
-				modifier = Modifier.focusKey("dv7_fallback_mode")
+				captionContent = { Text(stringResource(labelRes)) },
+				onClick = { router.push(Routes.PLAYBACK_DV7_FALLBACK) },
+				modifier = Modifier.focusKey(Routes.PLAYBACK_DV7_FALLBACK)
 			)
 		}
 

@@ -40,6 +40,7 @@ import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackAudioB
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackBitstreamAudioScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackBufferLengthScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackCodecScreen
+import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackDv7FallbackScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackHEVCLevelScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackHdrOverrideScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackHdrOverridesScreen
@@ -108,6 +109,7 @@ object Routes {
 	const val PLAYBACK_REFRESH_RATE_SWITCHING_BEHAVIOR = "/playback/refresh-rate-switching-behavior"
 	const val PLAYBACK_ZOOM_MODE = "/playback/zoom-mode"
 	const val PLAYBACK_BUFFER_LENGTH = "/playback/buffer-length"
+	const val PLAYBACK_DV7_FALLBACK = "/playback/dv7-fallback"
 	const val PLAYBACK_HDR_OVERRIDES = "/playback/hdr-overrides"
 	const val PLAYBACK_HDR_OVERRIDE = "/playback/hdr-overrides/{format}"
 	const val PLAYBACK_AUDIO_BEHAVIOR = "/playback/audio-behavior"
@@ -270,6 +272,9 @@ val routes = mapOf<String, RouteComposable>(
 	},
 	Routes.PLAYBACK_BUFFER_LENGTH to {
 		SettingsPlaybackBufferLengthScreen()
+	},
+	Routes.PLAYBACK_DV7_FALLBACK to {
+		SettingsPlaybackDv7FallbackScreen()
 	},
 	Routes.PLAYBACK_HDR_OVERRIDES to {
 		SettingsPlaybackHdrOverridesScreen()
