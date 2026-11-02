@@ -4,7 +4,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +65,7 @@ class UpdateRepositoryImpl(
 					prefs.edit().putLong(KEY_LAST_CHECK, now).apply()
 					val currentVersion = BuildConfig.VERSION_NAME
 					_state.value = if (latest != null && isNewer(latest.version, currentVersion)) {
-						if (manual) _promptDismissed.value = false
+						_promptDismissed.value = false
 						UpdateState.Available(currentVersion, latest)
 					} else {
 						UpdateState.UpToDate(currentVersion)
@@ -90,6 +92,7 @@ class UpdateRepositoryImpl(
 		if (job?.isActive == true) return
 		if (Build.VERSION.SDK_INT >= 26 && !context.packageManager.canRequestPackageInstalls()) {
 			_state.value = UpdateState.NeedsPermission(update)
+			openInstallPermissionSettings()
 			return
 		}
 		job = scope.launch {
@@ -100,6 +103,37 @@ class UpdateRepositoryImpl(
 			}.onFailure {
 				Log.w(TAG, "Update download/install failed: ${it.message}")
 				_state.value = UpdateState.Failed("Couldn't download the update. Try again.", update)
+			}
+		}
+	}
+
+	override fun checkPermission(): Boolean {
+		val granted = Build.VERSION.SDK_INT < 26 || context.packageManager.canRequestPackageInstalls()
+		if (granted) {
+			val current = _state.value
+			if (current is UpdateState.NeedsPermission) {
+				_state.value = UpdateState.Available(BuildConfig.VERSION_NAME, current.update)
+			}
+		}
+		return granted
+	}
+
+	override fun openInstallPermissionSettings() {
+		if (Build.VERSION.SDK_INT < 26) return
+		val withPackage = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+			.setData(Uri.parse("package:${context.packageName}"))
+			.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		val withoutPackage = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+			.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		val security = Intent(Settings.ACTION_SECURITY_SETTINGS)
+			.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+		for (intent in listOf(withPackage, withoutPackage, security)) {
+			try {
+				context.startActivity(intent)
+				return
+			} catch (e: Exception) {
+				Log.w(TAG, "Failed to open install permission settings: ${e.message}")
 			}
 		}
 	}

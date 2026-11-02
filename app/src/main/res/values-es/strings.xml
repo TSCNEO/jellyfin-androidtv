@@ -8,6 +8,13 @@
     <string name="pref_update_installing">Instalando…</string>
     <string name="pref_update_failed">Error al comprobar o descargar</string>
     <string name="pref_update_permission_required">Permiso necesario para instalar</string>
+    <string name="pref_update_prompt_title">Actualización disponible</string>
+    <string name="pref_update_prompt_message">Hay una nueva versión de Jellyfin Direct Play (%1$s) disponible. ¿Deseas actualizar ahora?</string>
+    <string name="pref_update_action_update">Actualizar ahora</string>
+    <string name="pref_update_action_later">Más tarde</string>
+    <string name="pref_update_action_settings">Abrir Ajustes</string>
+    <string name="pref_update_permission_desc">Se necesita el permiso «Instalar aplicaciones desconocidas» para aplicar la actualización. Pulsa para abrir Ajustes del sistema y activarlo.</string>
+    <string name="pref_update_permission_required_desc">Pulsa para autorizar en Ajustes</string>
     <string name="btn_cancel">Cancelar</string>
     <string name="byletter_letters">ABCDEFGHIJKLMNÑOPQRSTUVWXYZ</string>
     <string name="pref_playback">Reproducir</string>

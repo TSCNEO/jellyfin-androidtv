@@ -7,6 +7,8 @@ interface UpdateRepository {
 	val promptDismissed: StateFlow<Boolean>
 
 	fun check(manual: Boolean)
+	fun checkPermission(): Boolean
 	fun downloadAndInstall()
+	fun openInstallPermissionSettings()
 	fun dismissPrompt()
 }

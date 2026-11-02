@@ -11,6 +11,13 @@
 	<string name="pref_update_installing">Installing…</string>
 	<string name="pref_update_failed">Update check failed</string>
 	<string name="pref_update_permission_required">Permission needed to install</string>
+	<string name="pref_update_prompt_title">Update available</string>
+	<string name="pref_update_prompt_message">A new version of Jellyfin Direct Play (%1$s) is available. Would you like to update now?</string>
+	<string name="pref_update_action_update">Update now</string>
+	<string name="pref_update_action_later">Later</string>
+	<string name="pref_update_action_settings">Open Settings</string>
+	<string name="pref_update_permission_desc">Permission to install unknown apps is required. Select to open Settings and allow it.</string>
+	<string name="pref_update_permission_required_desc">Press to authorize in Settings</string>
     <string name="video_error_unknown_error">Failed to load video</string>
     <string name="loading">Loading…</string>
     <string name="btn_cancel">Cancel</string>

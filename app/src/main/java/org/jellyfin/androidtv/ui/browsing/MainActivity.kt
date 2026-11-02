@@ -29,6 +29,8 @@ import org.jellyfin.androidtv.ui.navigation.NavigationRepository
 import org.jellyfin.androidtv.ui.screensaver.InAppScreensaver
 import org.jellyfin.androidtv.ui.settings.compat.MainActivitySettings
 import org.jellyfin.androidtv.ui.startup.StartupActivity
+import org.jellyfin.androidtv.ui.update.UpdatePrompt
+import org.jellyfin.androidtv.update.UpdateRepository
 import org.jellyfin.androidtv.util.applyTheme
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -40,6 +42,7 @@ class MainActivity : FragmentActivity() {
 	private val userRepository by inject<UserRepository>()
 	private val interactionTrackerViewModel by viewModel<InteractionTrackerViewModel>()
 	private val workManager by inject<WorkManager>()
+	private val updateRepository by inject<UpdateRepository>()
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		applyTheme()
@@ -73,6 +76,7 @@ class MainActivity : FragmentActivity() {
 					)
 					InAppScreensaver()
 					MainActivitySettings()
+					UpdatePrompt()
 				}
 			}
 		}
@@ -86,6 +90,9 @@ class MainActivity : FragmentActivity() {
 		applyTheme()
 
 		interactionTrackerViewModel.activityPaused = false
+
+		updateRepository.checkPermission()
+		updateRepository.check(manual = false)
 	}
 
 	private fun validateAuthentication(): Boolean {

@@ -72,7 +72,7 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 				is org.jellyfin.androidtv.update.UpdateState.Available -> "${stringResource(R.string.pref_update_available)}: v${state.update.version}"
 				is org.jellyfin.androidtv.update.UpdateState.Downloading -> "${stringResource(R.string.pref_update_downloading)} ${(state.progress * 100).toInt()}%"
 				is org.jellyfin.androidtv.update.UpdateState.Installing -> stringResource(R.string.pref_update_installing)
-				is org.jellyfin.androidtv.update.UpdateState.NeedsPermission -> stringResource(R.string.pref_update_permission_required)
+				is org.jellyfin.androidtv.update.UpdateState.NeedsPermission -> stringResource(R.string.pref_update_permission_required_desc)
 				is org.jellyfin.androidtv.update.UpdateState.Failed -> state.message
 			}
 			ListButton(
