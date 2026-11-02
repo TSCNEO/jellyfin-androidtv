@@ -112,16 +112,50 @@ class PlaybackBadgesHelperTest : FunSpec({
 			listOf("4K", "Dolby Vision")
 	}
 
-	test("Dolby Vision with HDR10 adds the HDR10 badge") {
+	test("Dolby Vision with an HDR base layer only shows the Dolby Vision badge") {
+		// Profile 7/8 streams also carry HDR10 or HDR10+ in their metadata, but only one HDR mode is
+		// active at a time, so the extra badges must never be rendered.
 		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10)) shouldBe
-			listOf("4K", "Dolby Vision", "HDR10")
+			listOf("4K", "Dolby Vision")
+		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10_PLUS)) shouldBe
+			listOf("4K", "Dolby Vision")
+		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_ELHDR10_PLUS)) shouldBe
+			listOf("4K", "Dolby Vision")
+		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HLG)) shouldBe
+			listOf("4K", "Dolby Vision")
 	}
 
-	test("Dolby Vision with HDR10+ adds the HDR10+ badge") {
-		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10_PLUS)) shouldBe
-			listOf("4K", "Dolby Vision", "HDR10+")
-		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_ELHDR10_PLUS)) shouldBe
-			listOf("4K", "Dolby Vision", "HDR10+")
+	test("exactly one HDR badge is returned per stream") {
+		val videoStreams = listOf(
+			VideoRangeType.DOVI,
+			VideoRangeType.DOVI_WITH_HDR10,
+			VideoRangeType.DOVI_WITH_HDR10_PLUS,
+			VideoRangeType.DOVI_WITH_EL,
+			VideoRangeType.DOVI_WITH_ELHDR10_PLUS,
+			VideoRangeType.DOVI_WITH_HLG,
+			VideoRangeType.DOVI_WITH_SDR,
+			VideoRangeType.HDR10,
+			VideoRangeType.HDR10_PLUS,
+			VideoRangeType.HLG,
+			VideoRangeType.SDR,
+		)
+		val hdrLabels = setOf("Dolby Vision", "HDR10", "HDR10+", "HLG")
+
+		videoStreams.forEach { rangeType ->
+			val hdrBadges = texts(videoStream(videoRangeType = rangeType)).filter { it in hdrLabels }
+			(hdrBadges.size <= 1) shouldBe true
+		}
+	}
+
+	test("active HDR label for the playback toast follows the single-mode priority") {
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.DOVI))) shouldBe "DOLBY VISION"
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10))) shouldBe "DOLBY VISION"
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.HDR10_PLUS))) shouldBe "HDR10+"
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.HLG))) shouldBe "HLG"
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.HDR10))) shouldBe "HDR10"
+		// SDR shows no toast at all.
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.SDR))) shouldBe null
+		PlaybackBadgesHelper.getActiveHdrLabel(emptyList()) shouldBe null
 	}
 
 	test("standalone HDR formats map to the right badge") {

@@ -1,6 +1,7 @@
 package org.jellyfin.androidtv.ui.update
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,17 +18,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jellyfin.androidtv.R
-import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.button.Button
+import org.jellyfin.androidtv.ui.base.button.ButtonDefaults
 import org.jellyfin.androidtv.ui.base.dialog.DialogBase
 import org.jellyfin.androidtv.update.UpdateRepository
 import org.jellyfin.androidtv.update.UpdateState
 import org.koin.compose.koinInject
+
+/** Dark, high-contrast palette for the update dialog (Leanback look, no light system surface). */
+private val DialogSurface = Color(0xFF181C22)
+private val DialogBorder = Color(0xFF2E3846)
+private val DialogBodyText = Color(0xFFE2E8F0)
+private val PrimaryAccent = Color(0xFF00A4DC)
+private val PrimaryAccentFocused = Color(0xFF33BEEC)
+private val SecondarySurface = Color(0xFF2C3440)
+private val SecondarySurfaceFocused = Color(0xFF3C4757)
 
 /**
  * In-app update prompt. Visible while an update is available (or being applied) and the user
@@ -56,7 +68,8 @@ fun UpdatePrompt() {
 		Box(
 			modifier = Modifier
 				.widthIn(min = 320.dp, max = 560.dp)
-				.background(JellyfinTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+				.background(DialogSurface, RoundedCornerShape(12.dp))
+				.border(1.dp, DialogBorder, RoundedCornerShape(12.dp))
 				.padding(24.dp)
 		) {
 			UpdatePromptContent(
@@ -125,14 +138,19 @@ private fun UpdatePromptContent(
 		}
 	}
 
+	val buttonShape = RoundedCornerShape(8.dp)
+
 	Column {
 		Text(
 			text = title,
-			fontSize = 20.sp,
+			color = Color.White,
+			fontWeight = FontWeight.Bold,
+			fontSize = 22.sp,
 			modifier = Modifier.padding(bottom = 12.dp)
 		)
 		Text(
 			text = message,
+			color = DialogBodyText,
 			fontSize = 15.sp,
 			modifier = Modifier.padding(bottom = 24.dp)
 		)
@@ -141,11 +159,31 @@ private fun UpdatePromptContent(
 			Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 				Button(
 					onClick = primaryAction,
-					modifier = Modifier.focusRequester(focusRequester)
+					modifier = Modifier.focusRequester(focusRequester),
+					shape = buttonShape,
+					colors = ButtonDefaults.colors(
+						containerColor = PrimaryAccent,
+						contentColor = Color.White,
+						focusedContainerColor = PrimaryAccentFocused,
+						focusedContentColor = Color.White,
+						disabledContainerColor = PrimaryAccent.copy(alpha = 0.4f),
+						disabledContentColor = Color.White.copy(alpha = 0.6f),
+					),
 				) {
-					Text(text = primaryLabel.orEmpty())
+					Text(text = primaryLabel.orEmpty(), fontWeight = FontWeight.Bold)
 				}
-				Button(onClick = onDismiss) {
+				Button(
+					onClick = onDismiss,
+					shape = buttonShape,
+					colors = ButtonDefaults.colors(
+						containerColor = SecondarySurface,
+						contentColor = DialogBodyText,
+						focusedContainerColor = SecondarySurfaceFocused,
+						focusedContentColor = Color.White,
+						disabledContainerColor = SecondarySurface.copy(alpha = 0.4f),
+						disabledContentColor = DialogBodyText.copy(alpha = 0.6f),
+					),
+				) {
 					Text(text = stringResource(R.string.pref_update_action_later))
 				}
 			}

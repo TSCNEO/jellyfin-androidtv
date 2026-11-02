@@ -130,4 +130,25 @@
         android:id="@+id/skip_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <!--
+        TV-style HDR indicator shown at the top-right corner when playback starts. Filled in by
+        CustomPlaybackOverlayFragment.showHdrToast() and faded out after 3.5 s. Hidden for SDR.
+    -->
+    <TextView
+        android:id="@+id/hdr_toast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="28dp"
+        android:layout_marginEnd="52dp"
+        android:background="@drawable/hdr_toast_background"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.08"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="7dp"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:visibility="gone"
+        tools:text="DOLBY VISION" />
 </FrameLayout>

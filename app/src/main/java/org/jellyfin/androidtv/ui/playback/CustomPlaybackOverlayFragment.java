@@ -118,6 +118,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     private Animation hidePopup;
     private final Handler mHandler = new Handler();
     private Runnable mHideTask;
+    private Runnable hideHdrToastRunnable;
 
     private AudioManager mAudioManager;
 
@@ -229,6 +230,11 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        if (hideHdrToastRunnable != null && binding != null && binding.hdrToast != null) {
+            binding.hdrToast.removeCallbacks(hideHdrToastRunnable);
+            hideHdrToastRunnable = null;
+        }
 
         binding = null;
         // To fix race condition in hide timer
@@ -1274,7 +1280,47 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
             }
 
             updateBadges();
+            PlaybackController controller = playbackControllerContainer.getValue().getPlaybackController();
+            showHdrToast(current, controller != null ? controller.getCurrentMediaSource() : null);
         }
+    }
+
+    /**
+     * Show a top-right toast indicating the active HDR format (DOLBY VISION, HDR10+, etc.)
+     * for ~3.5 seconds on video playback start, then smoothly fade out. Hidden for SDR.
+     */
+    private void showHdrToast(BaseItemDto item, MediaSourceInfo mediaSource) {
+        if (binding == null || binding.hdrToast == null || getContext() == null) return;
+
+        String hdrLabel = PlaybackBadgesHelper.INSTANCE.getActiveHdrLabel(item, mediaSource);
+        if (hdrLabel == null || hdrLabel.isEmpty()) {
+            binding.hdrToast.setVisibility(View.GONE);
+            return;
+        }
+
+        binding.hdrToast.setText(hdrLabel);
+        binding.hdrToast.setAlpha(1.0f);
+        binding.hdrToast.setVisibility(View.VISIBLE);
+
+        if (hideHdrToastRunnable != null) {
+            binding.hdrToast.removeCallbacks(hideHdrToastRunnable);
+        }
+
+        hideHdrToastRunnable = () -> {
+            if (binding != null && binding.hdrToast != null) {
+                binding.hdrToast.animate()
+                    .alpha(0.0f)
+                    .setDuration(500)
+                    .withEndAction(() -> {
+                        if (binding != null && binding.hdrToast != null) {
+                            binding.hdrToast.setVisibility(View.GONE);
+                        }
+                    })
+                    .start();
+            }
+        };
+
+        binding.hdrToast.postDelayed(hideHdrToastRunnable, 3500);
     }
 
     /**

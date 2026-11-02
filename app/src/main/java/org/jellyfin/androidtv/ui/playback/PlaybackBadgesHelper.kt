@@ -38,11 +38,6 @@ object PlaybackBadgesHelper {
 		VideoRangeType.DOVI_WITH_SDR,
 	)
 
-	private val DOLBY_VISION_HDR10_PLUS_TYPES = setOf(
-		VideoRangeType.DOVI_WITH_HDR10_PLUS,
-		VideoRangeType.DOVI_WITH_ELHDR10_PLUS,
-	)
-
 	/**
 	 * @param item the currently playing item (used to resolve media streams when no media source is given)
 	 * @param mediaSource the active media source, if known
@@ -119,33 +114,32 @@ object PlaybackBadgesHelper {
 	}
 
 	/**
-	 * Returns the HDR badges for a video stream. Dolby Vision can be combined with HDR10/HDR10+
-	 * in the same stream (profiles 7/8), so the result may hold more than one badge.
+	 * Returns the single HDR badge for a video stream. Only one HDR format is reported per stream even
+	 * when the metadata carries several of them (Dolby Vision profile 7/8 also signal the HDR10 or
+	 * HDR10+ base layer), because the player only ever outputs one active HDR mode at a time. Priority:
+	 * Dolby Vision > HDR10+ > HLG > HDR10.
 	 */
 	private fun hdrBadges(stream: MediaStream): List<BadgeInfo> {
-		val rangeType = stream.videoRangeType
-		val range = stream.videoRange
+		val badge = hdrBadge(stream.videoRangeType, stream.videoRange) ?: return emptyList()
+		return listOf(badge)
+	}
+
+	/** The active HDR mode of [stream], if any, as an OSD badge. */
+	fun hdrBadge(stream: MediaStream): BadgeInfo? = hdrBadge(stream.videoRangeType, stream.videoRange)
+
+	private fun hdrBadge(rangeType: VideoRangeType?, range: VideoRange?): BadgeInfo? {
 		val rangeName = rangeType?.name.orEmpty()
-		val rawText = stream.videoRange?.name.orEmpty()
+		val rawText = range?.name.orEmpty()
 
-		// Dolby Vision first: it wins over the HDR base layer it carries.
-		if (rangeType != null && rangeType in DOLBY_VISION_TYPES) {
-			val badges = mutableListOf(BadgeInfo("Dolby Vision"))
-			val hasHdr10Plus = rangeType in DOLBY_VISION_HDR10_PLUS_TYPES ||
-				rawText.contains("HDR10+", ignoreCase = true)
-			val hasHdr10 = rangeType == VideoRangeType.DOVI_WITH_HDR10
+		// Dolby Vision wins over the HDR base layer it carries, so nothing else is reported.
+		if (rangeType != null && rangeType in DOLBY_VISION_TYPES) return BadgeInfo("Dolby Vision")
 
-			if (hasHdr10Plus) badges += BadgeInfo("HDR10+")
-			if (hasHdr10) badges += BadgeInfo("HDR10")
-			return badges
-		}
-
-		if (rangeType == VideoRangeType.HDR10_PLUS || rawText.contains("HDR10+", ignoreCase = true)) {
-			return listOf(BadgeInfo("HDR10+"))
+		if (rangeType == VideoRangeType.HDR10_PLUS || rangeName.contains("HDR10+", ignoreCase = true) || rawText.contains("HDR10+", ignoreCase = true)) {
+			return BadgeInfo("HDR10+")
 		}
 
 		if (rangeType == VideoRangeType.HLG || rangeName.contains("HLG", ignoreCase = true) || rawText.contains("HLG", ignoreCase = true)) {
-			return listOf(BadgeInfo("HLG"))
+			return BadgeInfo("HLG")
 		}
 
 		if (rangeType == VideoRangeType.HDR10 ||
@@ -153,11 +147,38 @@ object PlaybackBadgesHelper {
 			rawText.contains("HDR", ignoreCase = true) ||
 			range == VideoRange.HDR
 		) {
-			return listOf(BadgeInfo("HDR10"))
+			return BadgeInfo("HDR10")
 		}
 
-		return emptyList()
+		return null
 	}
+
+	/**
+	 * Label for the TV-style HDR toast shown when playback starts, e.g. `DOLBY VISION` or `HDR10+`.
+	 * Returns null for SDR content so no toast is displayed at all.
+	 */
+	fun getActiveHdrLabel(
+		item: BaseItemDto?,
+		mediaSource: MediaSourceInfo?,
+	): String? {
+		val streams: List<MediaStream> = mediaSource?.mediaStreams
+			?: item?.mediaStreams
+			?: emptyList()
+
+		return getActiveHdrLabel(streams)
+	}
+
+	fun getActiveHdrLabel(streams: List<MediaStream>): String? {
+		val videoStream = streams.firstOrNull { it.type == MediaStreamType.VIDEO } ?: return null
+		val badge = hdrBadge(videoStream) ?: return null
+
+		return when (badge.text) {
+			"Dolby Vision" -> "DOLBY VISION"
+			"HLG" -> "HLG"
+			else -> badge.text.uppercase()
+		}
+	}
+
 
 	private fun audioBadge(stream: MediaStream): BadgeInfo? {
 		val codec = stream.codec?.lowercase()

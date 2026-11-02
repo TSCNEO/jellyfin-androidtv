@@ -2,15 +2,30 @@ package ui.playback
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
+import org.jellyfin.androidtv.preference.constant.AGGRESSIVE_BUFFER_BYTES
 import org.jellyfin.androidtv.preference.constant.BufferLength
+import org.jellyfin.androidtv.preference.constant.HIGH_BUFFER_BYTES
+import org.jellyfin.androidtv.preference.constant.LOW_BUFFER_BYTES
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class BufferLengthTest : FunSpec({
 
+	test("BufferLength AGGRESSIVE has a 512MB budget and a 60s-120s window") {
+		BufferLength.AGGRESSIVE.minBufferDuration shouldBe 60.seconds
+		BufferLength.AGGRESSIVE.maxBufferDuration shouldBe 120.seconds
+		BufferLength.AGGRESSIVE.bufferForPlaybackDuration shouldBe 2.seconds
+		BufferLength.AGGRESSIVE.bufferForPlaybackAfterRebufferDuration shouldBe 4.seconds
+		BufferLength.AGGRESSIVE.targetBufferBytes shouldBe 536870912
+		BufferLength.AGGRESSIVE.targetBufferBytes shouldBe AGGRESSIVE_BUFFER_BYTES
+		BufferLength.AGGRESSIVE.prioritizeTimeOverSize shouldBe true
+	}
+
 	test("BufferLength AUTO has correct durations and byte budget") {
 		BufferLength.AUTO.minBufferDuration shouldBe 25.seconds
 		BufferLength.AUTO.maxBufferDuration shouldBe 60.seconds
+		BufferLength.AUTO.bufferForPlaybackDuration shouldBe 1500.milliseconds
+		BufferLength.AUTO.bufferForPlaybackAfterRebufferDuration shouldBe 3.seconds
 		BufferLength.AUTO.targetBufferBytes shouldBe null
 		BufferLength.AUTO.prioritizeTimeOverSize shouldBe true
 	}
@@ -19,6 +34,7 @@ class BufferLengthTest : FunSpec({
 		BufferLength.HIGH.minBufferDuration shouldBe 25.seconds
 		BufferLength.HIGH.maxBufferDuration shouldBe 60.seconds
 		BufferLength.HIGH.targetBufferBytes shouldBe 268435456
+		BufferLength.HIGH.targetBufferBytes shouldBe HIGH_BUFFER_BYTES
 		BufferLength.HIGH.prioritizeTimeOverSize shouldBe true
 	}
 
@@ -33,6 +49,22 @@ class BufferLengthTest : FunSpec({
 		BufferLength.LOW.minBufferDuration shouldBe 15.seconds
 		BufferLength.LOW.maxBufferDuration shouldBe 30.seconds
 		BufferLength.LOW.targetBufferBytes shouldBe 67108864
+		BufferLength.LOW.targetBufferBytes shouldBe LOW_BUFFER_BYTES
+		BufferLength.LOW.prioritizeTimeOverSize shouldBe false
+	}
+
+	test("profiles are listed from the most to the least aggressive budget") {
+		BufferLength.entries.map { it.name } shouldBe listOf("AUTO", "AGGRESSIVE", "HIGH", "STANDARD", "LOW")
+		// Every explicit budget stays ordered: AGGRESSIVE > HIGH > LOW.
+		BufferLength.AGGRESSIVE.targetBufferBytes!! shouldBe 2 * BufferLength.HIGH.targetBufferBytes!!
+		BufferLength.HIGH.targetBufferBytes!! shouldBe 4 * BufferLength.LOW.targetBufferBytes!!
+	}
+
+	test("high capacity profiles prioritize time over size to avoid network hiccups") {
+		BufferLength.AUTO.prioritizeTimeOverSize shouldBe true
+		BufferLength.AGGRESSIVE.prioritizeTimeOverSize shouldBe true
+		BufferLength.HIGH.prioritizeTimeOverSize shouldBe true
+		BufferLength.STANDARD.prioritizeTimeOverSize shouldBe false
 		BufferLength.LOW.prioritizeTimeOverSize shouldBe false
 	}
 })

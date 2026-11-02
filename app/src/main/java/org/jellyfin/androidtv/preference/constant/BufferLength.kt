@@ -6,6 +6,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+/** 512 MiB, the byte budget reserved by the [BufferLength.AGGRESSIVE] profile. */
+const val AGGRESSIVE_BUFFER_BYTES: Int = 512 * 1024 * 1024
+
 /** 256 MiB, the byte budget reserved by the [BufferLength.HIGH] profile. */
 const val HIGH_BUFFER_BYTES: Int = 256 * 1024 * 1024
 
@@ -50,6 +53,24 @@ enum class BufferLength(
 		maxBufferDuration = 60.seconds,
 		bufferForPlaybackDuration = 1500.milliseconds,
 		bufferForPlaybackAfterRebufferDuration = 3.seconds,
+		prioritizeTimeOverSize = true,
+	),
+
+	/**
+	 * Aggressive profile for boxes with 3 GB of RAM or more (Homatics, Shield). Reserves a 512 MiB
+	 * sample budget and grows the window to 60-120 seconds: enough headroom to absorb bitrate spikes
+	 * of 4K remuxes (80-120 Mbps) over Wi-Fi without a single re-buffer. The settings screen hides
+	 * this entry on devices with less than 3 GB of RAM because the allocator would be killed by the
+	 * low memory killer before the budget is filled.
+	 */
+	AGGRESSIVE(
+		nameRes = R.string.playback_buffer_aggressive,
+		descriptionRes = R.string.playback_buffer_aggressive_desc,
+		minBufferDuration = 60.seconds,
+		maxBufferDuration = 120.seconds,
+		bufferForPlaybackDuration = 2.seconds,
+		bufferForPlaybackAfterRebufferDuration = 4.seconds,
+		targetBufferBytes = AGGRESSIVE_BUFFER_BYTES,
 		prioritizeTimeOverSize = true,
 	),
 

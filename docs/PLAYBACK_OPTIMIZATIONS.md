@@ -77,12 +77,9 @@ var refreshRateSwitchingBehavior = enumPreference(
 En versiones anteriores, el OSD de reproducción únicamente presentaba el badge genérico de Dolby Vision si estaba presente. En Jellyfin Direct Play se incorpora **`PlaybackBadgesHelper`** para poblar dinámicamente tanto la interfaz de Leanback (`CustomPlaybackOverlayFragment` / `vlc_player_interface.xml`) como Compose (`VideoPlayerHeader`):
 
 * **Vídeo (HDR / Rango Dinámico & Resolución)**:
-  - **Dolby Vision**: Identificado vía `VideoRangeType.DOVI`, `DOVI_WITH_HDR10`, `DOVI_WITH_HDR10_PLUS`, etc. Badge: `Dolby Vision`.
-  - **HDR10+**: Detectado para streams `VideoRangeType.HDR10_PLUS` y combinaciones duales `DOVI_WITH_HDR10_PLUS`.
-  - **HDR10**: Identificado para `VideoRangeType.HDR10` o perfiles HDR base.
-  - **HLG**: Detección de emisiones con curva Hybrid Log-Gamma (`VideoRangeType.HLG`).
-  - **Resolución**: Cálculo dinámico en píxeles (`4K`, `1080p`, `720p`).
-* **Audio de Objeto y Alta Definición (Dolby Atmos / DTS-HD / Lossless)**:
+  - **Exclusividad de modo HDR**: Se garantiza que el OSD reporte exclusivamente el modo HDR activo (`Dolby Vision` > `HDR10+` > `HLG` > `HDR10`), evitando la duplicidad de badges simultáneos (como `DV` y `HDR10+` a la vez) en streams de perfil dual (perfil 7 u 8).
+  - **Toast flotante al inicio**: Al arrancar la reproducción, se presenta durante 3.5 segundos en la esquina superior derecha una píldora con el modo activo (`DOLBY VISION`, `HDR10+`, etc.) que se desvanece suavemente (*fade out*), emulando las notificaciones nativas de las Smart TVs. Oculto para SDR.
+  - **Audio de Objeto y Alta Definición (Dolby Atmos / DTS-HD / Lossless)**:
   - **Dolby Atmos prioritario**: Si el stream contiene metadatos Atmos en perfil o título, se genera un badge resaltado con diseño de acento (`#00A4DC`), especializando según el contenedor base: `TrueHD Atmos` (Lossless), `DD+ Atmos` (Streaming/E-AC-3) o `Dolby Atmos`.
   - **Codecs HD**: Identificación de `TrueHD`, `DTS:X`, `DTS-HD MA`, `DTS`, `DD+`, `Dolby Digital`, `FLAC`, `AAC`, `OPUS`.
   - **Canales**: Mapeo estricto del diseño acústico (`7.1`, `5.1(side)`, `5.1`, `2.0`).
@@ -106,14 +103,15 @@ Al solicitar actualizar la aplicación desde el menú *Acerca de* (`SettingsAbou
 En ExoPlayer (y Media3), la gestión por defecto del búfer (`DefaultLoadControl`) dimensiona el asignador de muestras en función del conjunto de pistas activas y aplica límites de memoria derivados de perfiles genéricos (~130 MB). Al reproducir contenidos de streaming o archivos locales con bitrates muy elevados (remuxes 4K UHD Blu-ray con picos superiores a 80-100 Mbps), el búfer por defecto se agota con facilidad o se detiene prematuramente al alcanzar el límite estricto de bytes antes de cumplir los umbrales de duración temporal, provocando paradas e interrupciones constantes ("hipo" o re-buffering).
 
 ### Solución Implementada
-El fork **Jellyfin Direct Play** reestructura el control de carga tanto en `VideoManager.java` (backend legacy) como en `ExoPlayerBackend.kt` (Media3) y `PlaybackModule.kt`, introduciendo cuatro modos seleccionables en **Ajustes → Reproducción → Avanzado → Búfer de red (RAM)**:
+El fork **Jellyfin Direct Play** reestructura el control de carga tanto en `VideoManager.java` (backend legacy) como en `ExoPlayerBackend.kt` (Media3) y `PlaybackModule.kt`, introduciendo cinco modos seleccionables en **Ajustes → Reproducción → Avanzado → Búfer de red (RAM)**:
 
 | Modo | Nombre en UI | Duración (Min..Max) | Límite de RAM (`targetBufferBytes`) | Priorizar tiempo sobre tamaño | Caso de uso recomendado |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **AUTO** | Adaptativo (Recomendado) | 25s .. 60s | Dinámico / Automático | `true` | Ajuste dinámico inteligente para conexiones estándar y alta definición. |
-| **HIGH** | Alto | 25s .. 60s | **256 MB** | `true` | Ideal para Wi-Fi de alta velocidad o remuxes 4K con picos extremos de bitrate. |
+| **AUTO** | Adaptativo | 25s .. 60s | Dinámico (hasta 256 MB) | `true` | Ajuste dinámico inteligente para la mayoría de streams. |
+| **AGGRESSIVE** | Agresivo | 60s .. 120s | **512 MB** | `true` | Dispositivos con 3 GB de RAM o más (filtrado dinámicamente en UI). Máximo colchón contra hipo. |
+| **HIGH** | Alto | 25s .. 60s | **256 MB** | `true` | Ideal para Wi-Fi o remuxes 4K de alto bitrate. |
 | **STANDARD** | Estándar | Por defecto ExoPlayer | Por defecto (~130 MB) | `false` | Comportamiento estándar de upstream. |
-| **LOW** | Bajo | 15s .. 30s | **64 MB** | `false` | Para dispositivos Android TV con memoria RAM muy limitada. |
+| **LOW** | Bajo | 15s .. 30s | **64 MB** | `false` | Para dispositivos con poca memoria libre. |
 
 #### El Fix de `DefaultLoadControl`
 Para evitar que ExoPlayer detenga la precarga al alcanzar el límite de bytes antes de acumular suficientes segundos de reproducción, se configura explícitamente:
