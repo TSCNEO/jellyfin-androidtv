@@ -4,38 +4,27 @@ Este documento detalla el funcionamiento interno de las optimizaciones de reprod
 
 ---
 
-## 1. Dolby Vision Perfil 7 Fallback a HEVC / HDR10+
+## 1. Dolby Vision Perfil 7 & 8 Fallback a HEVC / HDR10+
 
 ### Contexto y Problema Técnico
-Dolby Vision Perfil 7 (`dvhe.07` / `dvh1.07`) es el formato estándar empleado en discos físicos UHD Blu-Ray. Contiene:
-- Una capa base (**Base Layer - BL**) codificada en HEVC Main 10 HDR10 / HDR10+ con mensajes SEI ITU-T T.35.
-- Una capa de mejora (**Enhancement Layer - EL**) que puede ser MEL (Minimal Enhancement Layer, solo metadatos RPU de 10 bits) o FEL (Full Enhancement Layer, metadatos RPU + flujo de vídeo residual de 12 bits).
+- **Dolby Vision Perfil 7 (`dvhe.07` / `dvh1.07`):** Formato estándar de discos físicos UHD Blu-Ray. Contiene una capa base (Base Layer - BL) HEVC Main 10 HDR10 / HDR10+ y una capa de mejora (Enhancement Layer - EL MEL/FEL).
+- **Dolby Vision Perfil 8 (`dvhe.08` / `dvh1.08`):** Formato estándar de streaming y masterings DCI. Contiene una capa base HEVC Main 10 (8.1 es HDR10, 8.4 es HLG, 8.6 es HDR10+) junto a metadatos RPU dinámicos de Dolby Vision en el mismo flujo.
 
-En procesadores basados en SoC Amlogic (ampliamente extendidos en cajas y sticks Android TV como Xiaomi TV Box S, Homatics Box R 4K Plus, Nokia Streaming Box, etc.), existen decodificadores hardware diferenciados:
-- `c2.amlogic.hevc.decoder`: Decodificador general HEVC (admite Main 10, tunneling y paso directo de paquetes SEI HDR10+).
-- `c2.amlogic.dolby-vision.dvhe.decoder`: Decodificador exclusivo para perfiles Dolby Vision. En la gran mayoría de chips Amlogic, este decodificador solo anuncia compatibilidad formal con perfiles 4, 5 y 8 (máscaras `0x10`, `0x20`, `0x100`), careciendo de perfil 7 (`0x80`).
+En procesadores SoC Amlogic (Xiaomi TV Box S, Homatics Box R 4K Plus, etc.):
+- `c2.amlogic.hevc.decoder`: Decodificador general HEVC (admite tunneling y paso directo de paquetes SEI HDR10+).
+- `c2.amlogic.dolby-vision.dvhe.decoder`: Decodificador Dolby Vision propietario.
 
 #### El fallo en pantallas sin Dolby Vision (ej. televisores Samsung)
-Cuando un reproductor entrega una pista DV Perfil 7 con tipo MIME `video/dolby-vision`:
-1. El decodificador Amlogic DV arranca e inspecciona el EDID HDMI de la pantalla conectada.
-2. Si el televisor es Samsung (o cualquier pantalla que carece de soporte Dolby Vision nativo pero soporta HDR10 y HDR10+), el decodificador Amlogic conmuta al modo interno `AMDV_OUTPUT_MODE_HDR10` para realizar un mapeo de tonos propietario.
-3. Durante esta conmutación, el controlador HDMI (`hdmitx_set_hdr10plus_pkt`) reporta `null vsif` y **descarta activamente los paquetes VSIF de metadatos HDR10+**.
-4. La reproducción sufre paradas, degradación de color o pérdida absoluta del rango dinámico dinámico en la pantalla.
+Cuando un reproductor entrega una pista DV Perfil 7 u 8 a una pantalla sin Dolby Vision:
+1. El decodificador Amlogic DV conmuta al modo interno `AMDV_OUTPUT_MODE_HDR10`.
+2. Durante esta conmutación, el controlador HDMI (`hdmitx_set_hdr10plus_pkt`) reporta `null vsif` y **descarta activamente los paquetes VSIF de metadatos HDR10+**, provocando colores apagados o pérdida de rango dinámico.
 
-### Solución Implementada: `DirectPlayVideoRenderer`
-En lugar de forzar parches binarios sobre librerías externas, el fork implementa una extensión limpia sobre el pipeline de Media3 / ExoPlayer:
-- **`DirectPlayVideoRenderer`:** Hereda de `MediaCodecVideoRenderer`. Intercepta la resolución del decodificador (`getDecoderInfos`) y los cambios de formato (`onInputFormatChanged`).
-- **`DirectPlayRenderersFactory`:** Sustituye a `DefaultRenderersFactory`, inyectando `DirectPlayVideoRenderer` tanto en la arquitectura moderna de ExoPlayer de Jellyfin como en `VideoManager.java`.
+### Solución Implementada: `DirectPlayVideoRenderer` y `DolbyVisionDisplayHelper`
+- **Fallback a HEVC Base Layer:** Intercepta streams DV Perfil 7 y Perfil 8 cuando el fallback está activo, reescribiendo el tipo MIME a `video/hevc` y asignando preferentemente `c2.amlogic.hevc.decoder`. El bitstream fluye intacto con sus paquetes SEI ITU-T T.35, entregando **HDR10+ o HDR10 nativo** al televisor.
+- **Sincronización Total con la UI:** `PlaybackBadgesHelper` utiliza la misma lógica y detección de capacidades que el motor de vídeo. Si el fallback está activo, los badges OSD y el toast de inicio reportan el modo real que se está emitiendo (`HDR10+`, `HDR10`, `HLG`) en lugar de reclamar `Dolby Vision` falsamente.
 - **Detección Dinámica (`Dv7FallbackMode.AUTO`):**
-  ```kotlin
-  val display = displayManager.getDisplay(Display.DEFAULT_DISPLAY)
-  val hdrCapabilities = display?.hdrCapabilities
-  val supportsDv = hdrCapabilities?.supportedHdrTypes?.contains(
-      Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION
-  ) == true
-  ```
-  - **Si la tele NO tiene Dolby Vision (`supportsDv == false`):** El renderizador reescribe transparentemente el formato a `MimeTypes.VIDEO_H265` (`video/hevc`) y asigna `c2.amlogic.hevc.decoder`. El bitstream HEVC fluye intacto con sus NAL units SEI ITU-T T.35, logrando que el televisor Samsung active **HDR10+ nativo** sin pérdida.
-  - **Si la tele SÍ tiene Dolby Vision (`supportsDv == true`):** Como en pantallas LG OLED, Sony Bravia o Philips OLED, el modo `AUTO` mantiene intacto el formato `video/dolby-vision`, entregando el stream al motor Dolby Vision nativo.
+  - Si la pantalla conectada no soporta Dolby Vision por HDMI: fallback activo (reproduce y muestra `HDR10+` / `HDR10`).
+  - Si la pantalla soporta Dolby Vision (ej. OLED LG, Sony): reproduce y muestra `Dolby Vision`.
 
 ### Modos Configurables
 En **Ajustes → Reproducción → Avanzado → *Dolby Vision Perfil 7 Fallback***:

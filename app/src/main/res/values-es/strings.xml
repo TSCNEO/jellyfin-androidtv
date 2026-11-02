@@ -678,7 +678,7 @@
     <string name="playback_buffer_auto">Adaptativo</string>
     <string name="playback_buffer_auto_desc">Ajuste dinámico según bitrate (hasta 256 MB).</string>
     <string name="playback_buffer_aggressive">Agresivo</string>
-    <string name="playback_buffer_aggressive_desc">512 MB. Dispositivos con 3 GB de RAM o más.</string>
+    <string name="playback_buffer_aggressive_desc">Dispositivos con 3 GB de RAM o más.</string>
     <string name="playback_buffer_high">Alto</string>
     <string name="playback_buffer_high_desc">256 MB fijos. Para Wi-Fi y alto bitrate.</string>
     <string name="playback_buffer_standard">Estándar</string>

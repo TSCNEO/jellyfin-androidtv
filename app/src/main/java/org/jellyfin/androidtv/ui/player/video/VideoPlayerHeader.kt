@@ -10,22 +10,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.playback.BadgeInfo
 import org.jellyfin.androidtv.ui.playback.PlaybackBadgesHelper
 import org.jellyfin.androidtv.ui.player.base.PlayerHeader
+import org.jellyfin.playback.exoplayer.directplay.DolbyVisionDisplayHelper
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.koin.compose.koinInject
 
 @Composable
 @Stable
 fun VideoPlayerHeader(
 	item: BaseItemDto?,
 ) {
+	val context = LocalContext.current
+	val userPreferences = koinInject<UserPreferences>()
+	val dv7FallbackMode = userPreferences[UserPreferences.dv7FallbackMode]
+	val isDvFallbackActive = DolbyVisionDisplayHelper.isFallbackActive(context, dv7FallbackMode)
+
 	PlayerHeader {
 		if (item != null) {
 			Text(
@@ -51,6 +60,8 @@ fun VideoPlayerHeader(
 			val badges = PlaybackBadgesHelper.getBadges(
 				item = item,
 				mediaSource = item.mediaSources?.firstOrNull(),
+				context = context,
+				isDvFallbackActive = isDvFallbackActive,
 			)
 			if (badges.isNotEmpty()) {
 				PlayerBadgesRow(badges)

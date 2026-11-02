@@ -20,10 +20,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.composable.rememberQueueEntry
 import org.jellyfin.androidtv.ui.playback.PlaybackBadgesHelper
@@ -32,6 +34,7 @@ import org.jellyfin.androidtv.ui.player.base.rememberPlayerOverlayVisibility
 import org.jellyfin.androidtv.ui.player.base.toast.MediaToastRegistry
 import org.jellyfin.androidtv.ui.player.base.toast.MediaToasts
 import org.jellyfin.playback.core.PlaybackManager
+import org.jellyfin.playback.exoplayer.directplay.DolbyVisionDisplayHelper
 import org.jellyfin.playback.jellyfin.queue.baseItem
 import org.jellyfin.playback.jellyfin.queue.baseItemFlow
 import org.koin.compose.koinInject
@@ -42,16 +45,23 @@ fun VideoPlayerOverlay(
 	playbackManager: PlaybackManager = koinInject(),
 	mediaToastRegistry: MediaToastRegistry,
 ) {
+	val context = LocalContext.current
+	val userPreferences = koinInject<UserPreferences>()
+	val dv7FallbackMode = userPreferences[UserPreferences.dv7FallbackMode]
+	val isDvFallbackActive = DolbyVisionDisplayHelper.isFallbackActive(context, dv7FallbackMode)
+
 	val visibilityState = rememberPlayerOverlayVisibility()
 	var showPlaybackInfo by remember { mutableStateOf(false) }
 
 	val entry by rememberQueueEntry(playbackManager)
 	val item = entry?.run { baseItemFlow.collectAsState(baseItem) }?.value
 
-	val hdrLabel = remember(item) {
+	val hdrLabel = remember(item, isDvFallbackActive) {
 		PlaybackBadgesHelper.getActiveHdrLabel(
 			item = item,
 			mediaSource = item?.mediaSources?.firstOrNull(),
+			context = context,
+			isDvFallbackActive = isDvFallbackActive,
 		)
 	}
 	var showHdrToast by remember(hdrLabel) { mutableStateOf(hdrLabel != null) }

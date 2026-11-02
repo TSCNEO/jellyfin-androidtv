@@ -41,6 +41,9 @@ import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.constant.CustomMessage;
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository;
 import org.jellyfin.androidtv.data.service.BackgroundService;
+import org.jellyfin.androidtv.preference.UserPreferences;
+import org.jellyfin.playback.exoplayer.directplay.DolbyVisionDisplayHelper;
+import org.jellyfin.playback.exoplayer.directplay.Dv7FallbackMode;
 import org.jellyfin.androidtv.databinding.OverlayTvGuideBinding;
 import org.jellyfin.androidtv.databinding.VlcPlayerInterfaceBinding;
 import org.jellyfin.androidtv.ui.GuideChannelHeader;
@@ -137,6 +140,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     private final Lazy<NavigationRepository> navigationRepository = inject(NavigationRepository.class);
     private final Lazy<BackgroundService> backgroundService = inject(BackgroundService.class);
     private final Lazy<ImageHelper> imageHelper = inject(ImageHelper.class);
+    private final Lazy<UserPreferences> userPreferences = inject(UserPreferences.class);
 
     private final PlaybackOverlayFragmentHelper helper = new PlaybackOverlayFragmentHelper(this);
 
@@ -1292,7 +1296,9 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     private void showHdrToast(BaseItemDto item, MediaSourceInfo mediaSource) {
         if (binding == null || binding.hdrToast == null || getContext() == null) return;
 
-        String hdrLabel = PlaybackBadgesHelper.INSTANCE.getActiveHdrLabel(item, mediaSource);
+        Context context = getContext();
+        boolean isDvFallbackActive = userPreferences.getValue() != null && DolbyVisionDisplayHelper.INSTANCE.isFallbackActive(context, userPreferences.getValue().get(UserPreferences.Companion.getDv7FallbackMode()));
+        String hdrLabel = PlaybackBadgesHelper.INSTANCE.getActiveHdrLabel(item, mediaSource, context, isDvFallbackActive);
         if (hdrLabel == null || hdrLabel.isEmpty()) {
             binding.hdrToast.setVisibility(View.GONE);
             return;
@@ -1343,7 +1349,9 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
             // Audio index is best effort - fall back to the default stream.
         }
 
-        List<BadgeInfo> badges = PlaybackBadgesHelper.INSTANCE.getBadges(item, mediaSource, audioIndex);
+        Context context = getContext();
+        boolean isDvFallbackActive = userPreferences.getValue() != null && DolbyVisionDisplayHelper.INSTANCE.isFallbackActive(context, userPreferences.getValue().get(UserPreferences.Companion.getDv7FallbackMode()));
+        List<BadgeInfo> badges = PlaybackBadgesHelper.INSTANCE.getBadges(item, mediaSource, audioIndex, context, isDvFallbackActive);
         LayoutInflater inflater = LayoutInflater.from(requireContext());
         for (BadgeInfo badge : badges) {
             TextView view = (TextView) inflater.inflate(R.layout.player_badge_item, binding.badgesContainer, false);

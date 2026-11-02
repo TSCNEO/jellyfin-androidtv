@@ -1,14 +1,10 @@
 package org.jellyfin.playback.exoplayer.directplay
 
 import android.content.Context
-import android.hardware.display.DisplayManager
 import android.media.MediaCrypto
-import android.os.Build
 import android.os.Handler
-import android.view.Display
 import androidx.media3.common.Format
 import androidx.media3.common.MimeTypes
-import androidx.media3.common.util.CodecSpecificDataUtil
 import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.FormatHolder
 import androidx.media3.exoplayer.mediacodec.MediaCodecAdapter
@@ -37,49 +33,33 @@ open class DirectPlayVideoRenderer(
 	maxDroppedFramesToNotify,
 ) {
 
-	fun isDisplaySupportingDolbyVision(context: Context): Boolean {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return false
-		val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager ?: return false
-		val display = displayManager.getDisplay(Display.DEFAULT_DISPLAY) ?: return false
-		if (!display.isHdr) return false
-		val hdrCapabilities = display.hdrCapabilities ?: return false
-		val supportedTypes = hdrCapabilities.supportedHdrTypes ?: return false
-		return supportedTypes.contains(Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION)
-	}
+	fun isDisplaySupportingDolbyVision(context: Context): Boolean =
+		DolbyVisionDisplayHelper.isDisplaySupportingDolbyVision(context)
 
-	fun isDolbyVisionProfile7(format: Format): Boolean {
-		val codecs = format.codecs
-		if (codecs != null && (codecs.startsWith("dvhe.07") || codecs.startsWith("dvh1.07"))) {
-			return true
-		}
-		val profileAndLevel = CodecSpecificDataUtil.getMediaCodecProfileAndLevel(format)
-		if (profileAndLevel != null) {
-			val profile = profileAndLevel.profile
-			// 128 = CodecProfileLevel.DolbyVisionProfileDvheDtb
-			// 64  = CodecProfileLevel.DolbyVisionProfileDvheDth
-			if (profile == 128 || profile == 64) {
-				return true
-			}
-		}
-		return false
-	}
+	fun isFallbackActive(context: Context, mode: Dv7FallbackMode): Boolean =
+		DolbyVisionDisplayHelper.isFallbackActive(context, mode)
 
-	fun shouldFallbackDv7ToHevc(format: Format?): Boolean {
+	fun isDolbyVisionProfile7(format: Format): Boolean =
+		DolbyVisionDisplayHelper.isDolbyVisionProfile7(format)
+
+	fun isDolbyVisionProfile8(format: Format): Boolean =
+		DolbyVisionDisplayHelper.isDolbyVisionProfile8(format)
+
+	fun shouldFallbackDv7ToHevc(format: Format?): Boolean =
+		shouldFallbackToHevc(format)
+
+	fun shouldFallbackToHevc(format: Format?): Boolean {
 		if (format == null) return false
 		val mime = format.sampleMimeType ?: return false
 		if (mime != MimeTypes.VIDEO_DOLBY_VISION) return false
 
-		if (!isDolbyVisionProfile7(format)) return false
+		if (!DolbyVisionDisplayHelper.isHevcBaseLayerDolbyVision(format)) return false
 
 		val mode = fallbackModeProvider()
-		val fallbackActive = when (mode) {
-			Dv7FallbackMode.ALWAYS -> true
-			Dv7FallbackMode.DISABLED -> false
-			Dv7FallbackMode.AUTO -> !isDisplaySupportingDolbyVision(appContext)
-		}
+		val fallbackActive = DolbyVisionDisplayHelper.isFallbackActive(appContext, mode)
 		if (fallbackActive) {
 			Timber.d(
-				"DirectPlayVideoRenderer: DV Profile 7 fallback to HEVC triggered (mode=%s, codecs=%s)",
+				"DirectPlayVideoRenderer: DV Profile 7/8 fallback to HEVC triggered (mode=%s, codecs=%s)",
 				mode,
 				format.codecs,
 			)
@@ -98,7 +78,7 @@ open class DirectPlayVideoRenderer(
 		mediaCodecSelector: MediaCodecSelector,
 		format: Format,
 	): Int {
-		if (shouldFallbackDv7ToHevc(format)) {
+		if (shouldFallbackToHevc(format)) {
 			return super.supportsFormat(mediaCodecSelector, toHevcFormat(format))
 		}
 		return super.supportsFormat(mediaCodecSelector, format)
@@ -109,12 +89,12 @@ open class DirectPlayVideoRenderer(
 		format: Format,
 		requiresSecureDecoder: Boolean,
 	): List<MediaCodecInfo> {
-		if (shouldFallbackDv7ToHevc(format)) {
+		if (shouldFallbackToHevc(format)) {
 			val hevcFormat = toHevcFormat(format)
 			val alternativeDecoders = super.getDecoderInfos(mediaCodecSelector, hevcFormat, requiresSecureDecoder)
 			if (alternativeDecoders.isNotEmpty()) {
 				Timber.i(
-					"DirectPlayVideoRenderer: DV Profile 7 routed to HEVC decoder: %s",
+					"DirectPlayVideoRenderer: DV Profile 7/8 routed to HEVC decoder: %s",
 					alternativeDecoders.firstOrNull()?.name,
 				)
 				return alternativeDecoders
@@ -129,7 +109,7 @@ open class DirectPlayVideoRenderer(
 		crypto: MediaCrypto?,
 		codecOperatingRate: Float,
 	): MediaCodecAdapter.Configuration {
-		val targetFormat = if (shouldFallbackDv7ToHevc(format) && MimeTypes.VIDEO_H265 == codecInfo.mimeType) {
+		val targetFormat = if (shouldFallbackToHevc(format) && MimeTypes.VIDEO_H265 == codecInfo.mimeType) {
 			toHevcFormat(format)
 		} else {
 			format
@@ -139,7 +119,7 @@ open class DirectPlayVideoRenderer(
 
 	override fun onInputFormatChanged(formatHolder: FormatHolder): DecoderReuseEvaluation? {
 		val format = formatHolder.format
-		if (format != null && shouldFallbackDv7ToHevc(format)) {
+		if (format != null && shouldFallbackToHevc(format)) {
 			formatHolder.format = toHevcFormat(format)
 		}
 		return super.onInputFormatChanged(formatHolder)

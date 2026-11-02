@@ -88,8 +88,8 @@ class PlaybackBadgesHelperTest : FunSpec({
 		isDefault = isDefault,
 	)
 
-	fun texts(vararg streams: MediaStream, audioIndex: Int? = null): List<String> =
-		PlaybackBadgesHelper.getBadges(streams = streams.toList(), activeAudioIndex = audioIndex)
+	fun texts(vararg streams: MediaStream, audioIndex: Int? = null, isDvFallbackActive: Boolean = false): List<String> =
+		PlaybackBadgesHelper.getBadges(streams = streams.toList(), activeAudioIndex = audioIndex, isDvFallbackActive = isDvFallbackActive)
 			.map { it.text }
 
 	test("returns empty list when there is no media information") {
@@ -112,17 +112,41 @@ class PlaybackBadgesHelperTest : FunSpec({
 			listOf("4K", "Dolby Vision")
 	}
 
-	test("Dolby Vision with an HDR base layer only shows the Dolby Vision badge") {
-		// Profile 7/8 streams also carry HDR10 or HDR10+ in their metadata, but only one HDR mode is
-		// active at a time, so the extra badges must never be rendered.
-		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10)) shouldBe
+	test("Dolby Vision with an HDR base layer only shows the Dolby Vision badge when fallback is inactive") {
+		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10), isDvFallbackActive = false) shouldBe
 			listOf("4K", "Dolby Vision")
-		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10_PLUS)) shouldBe
+		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10_PLUS), isDvFallbackActive = false) shouldBe
 			listOf("4K", "Dolby Vision")
-		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_ELHDR10_PLUS)) shouldBe
+		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_ELHDR10_PLUS), isDvFallbackActive = false) shouldBe
 			listOf("4K", "Dolby Vision")
-		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HLG)) shouldBe
+		texts(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HLG), isDvFallbackActive = false) shouldBe
 			listOf("4K", "Dolby Vision")
+	}
+
+	test("Dolby Vision with HDR10+ base layer respects fallback configuration (Proyecto Salvación)") {
+		val stream = videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10_PLUS)
+
+		// When fallback is inactive (TV supports DV), report Dolby Vision
+		PlaybackBadgesHelper.getBadges(listOf(stream), isDvFallbackActive = false).map { it.text } shouldBe
+			listOf("4K", "Dolby Vision")
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(stream), isDvFallbackActive = false) shouldBe "DOLBY VISION"
+
+		// When fallback is active (TV lacks DV, Proyecto Salvación / HDR10+), report HDR10+
+		PlaybackBadgesHelper.getBadges(listOf(stream), isDvFallbackActive = true).map { it.text } shouldBe
+			listOf("4K", "HDR10+")
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(stream), isDvFallbackActive = true) shouldBe "HDR10+"
+	}
+
+	test("Dolby Vision with HLG and HDR10 base layers respect fallback configuration") {
+		val hlgStream = videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HLG)
+		PlaybackBadgesHelper.getBadges(listOf(hlgStream), isDvFallbackActive = true).map { it.text } shouldBe
+			listOf("4K", "HLG")
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(hlgStream), isDvFallbackActive = true) shouldBe "HLG"
+
+		val hdr10Stream = videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10)
+		PlaybackBadgesHelper.getBadges(listOf(hdr10Stream), isDvFallbackActive = true).map { it.text } shouldBe
+			listOf("4K", "HDR10")
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(hdr10Stream), isDvFallbackActive = true) shouldBe "HDR10"
 	}
 
 	test("exactly one HDR badge is returned per stream") {
@@ -148,8 +172,8 @@ class PlaybackBadgesHelperTest : FunSpec({
 	}
 
 	test("active HDR label for the playback toast follows the single-mode priority") {
-		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.DOVI))) shouldBe "DOLBY VISION"
-		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10))) shouldBe "DOLBY VISION"
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.DOVI)), isDvFallbackActive = false) shouldBe "DOLBY VISION"
+		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.DOVI_WITH_HDR10)), isDvFallbackActive = false) shouldBe "DOLBY VISION"
 		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.HDR10_PLUS))) shouldBe "HDR10+"
 		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.HLG))) shouldBe "HLG"
 		PlaybackBadgesHelper.getActiveHdrLabel(listOf(videoStream(videoRangeType = VideoRangeType.HDR10))) shouldBe "HDR10"
