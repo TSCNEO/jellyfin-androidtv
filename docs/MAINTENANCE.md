@@ -114,3 +114,12 @@ El workflow `.github/workflows/sync-upstream.yml`:
   2. Ejecuta la suite de pruebas unitarias (`./gradlew test`).
   3. Si las pruebas pasan, sube a `main` e inicia la compilación de la nueva release.
   4. Si se produce un conflicto o fallo de tests, abre un Pull Request / Issue automáticamente detallando el conflicto para resolución manual, sin romper la rama principal.
+
+---
+
+## 6. Pipeline de Reproducción Personalizado
+
+El fork extiende el motor de renderizado de Media3 / ExoPlayer para soportar optimizaciones avanzadas de hardware:
+- **`DirectPlayVideoRenderer` & `DirectPlayRenderersFactory`:** Manejan el fallback automático de Dolby Vision Perfil 7 (`dvhe.07`/`dvh1.07`) a HEVC hardware (`c2.amlogic.hevc.decoder`) en pantallas sin DV nativo (preservando SEI HDR10+ dinámico intacto).
+- **Auto Frame Rate (AFR):** Configurado de serie en `SCALE_ON_DEVICE` en `UserPreferences` para sincronización automática de hercios con la cadencia de la fuente (23.976 / 24.000 Hz).
+- Para más información y detalles técnicos sobre la negociación HDMI y EDID, consulta la [Guía de Optimizaciones de Reproducción](PLAYBACK_OPTIMIZATIONS.md).

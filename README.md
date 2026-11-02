@@ -50,6 +50,8 @@ Reproductores multimedia actuales (como **Homatics Box R 4K Plus**, **Nvidia Shi
 
 ### 3. Qué aporta Jellyfin Direct Play
 - **Force Direct Play por defecto:** Omite las restricciones artificiales del cliente para reproducción bajo demanda interna. El stream original intacto se entrega directamente al decodificador hardware (`MediaCodec` / ExoPlayer).
+- **Fallback Inteligente Dolby Vision Perfil 7 (`AUTO` por defecto):** Resuelve el fallo en chips Amlogic conectados a pantallas sin Dolby Vision (como televisores Samsung). Intercepta flujos `dvhe.07` / `dvh1.07`, consulta el EDID HDMI de la pantalla y, si no admite DV nativo, conmuta transparentemente al decodificador HEVC hardware (`c2.amlogic.hevc.decoder`) preservando los metadatos dinámicos SEI ITU-T T.35 para activar **HDR10+ nativo**. En pantallas con Dolby Vision nativo (LG OLED, Sony), entrega Dolby Vision íntegro sin alterar nada. Ver [Guía de Optimizaciones de Reproducción](docs/PLAYBACK_OPTIMIZATIONS.md).
+- **Auto Frame Rate (AFR) activo por defecto:** Cambio de frecuencia de actualización configurado de fábrica en *Escala en dispositivo* (`SCALE_ON_DEVICE`). Sincroniza automáticamente los hercios de salida HDMI con la cadencia exacta de la película (23.976 fps, 24.000 fps, etc.), eliminando tirones y judder desde el primer arranque sin necesidad de tocar menús avanzados.
 - **Coexistencia en paralelo (`org.jellyfin.androidtv.directplay`):** Identificador de paquete desacoplado. Permite tener instalada la app oficial de Jellyfin y Jellyfin Direct Play simultáneamente en la misma tele sin conflictos ni colisiones.
 - **In-App Auto-Updater integrado:** Inspirado en la arquitectura de Bambi, la aplicación consulta la API de GitHub Releases. Cuando hay una nueva versión, te avisa en **Ajustes -> Quienes somos** y se actualiza a sí misma con un solo clic vía `PackageInstaller`.
 - **Firma criptográfica persistente:** Compilación y firma automatizada en GitHub Actions con un keystore de producción seguro. Esto garantiza que las actualizaciones internas se instalen sobre la app existente sin errores de firma (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`).
@@ -64,9 +66,9 @@ El versionado de este fork sigue una convención clara y determinista:
 ```text
 <upstreamVersion>-directplay.<iteracion>
 ```
-- Ejemplo: `0.20.0-beta.4-directplay.2`
+- Ejemplo: `0.20.0-beta.4-directplay.5`
 - El código numérico de versión de Android (`versionCode`) se incrementa de forma monótona:
-  `versionCode = baseCode * 100 + iteracion` (ej: `20000402`), garantizando actualizaciones automáticas válidas para el gestor de paquetes de Android.
+  `versionCode = baseCode * 100 + iteracion` (ej: `20000405`), garantizando actualizaciones automáticas válidas para el gestor de paquetes de Android.
 
 ---
 
