@@ -46,6 +46,8 @@ import org.jellyfin.playback.core.ui.PlayerSubtitleView
 import org.jellyfin.playback.core.ui.PlayerSurfaceView
 import org.jellyfin.playback.media3.exoplayer.support.getPlaySupportReport
 import org.jellyfin.playback.media3.exoplayer.support.toFormats
+import org.jellyfin.playback.exoplayer.directplay.DirectPlayRenderersFactory
+import org.jellyfin.playback.exoplayer.directplay.Dv7FallbackMode
 import timber.log.Timber
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -97,7 +99,10 @@ class ExoPlayerBackend(
 			}
 		} else DefaultMediaSourceFactory(dataSourceFactory, extractorsFactory)
 
-		val renderersFactory = DefaultRenderersFactory(context).apply {
+		val renderersFactory = DirectPlayRenderersFactory(
+			context = context,
+			fallbackModeProvider = { Dv7FallbackMode.AUTO },
+		).apply {
 			setEnableDecoderFallback(true)
 			setExtensionRendererMode(
 				when (exoPlayerOptions.preferFfmpeg) {

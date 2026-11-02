@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.getQualityProfiles
 import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.playback.exoplayer.directplay.Dv7FallbackMode
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.Checkbox
@@ -130,6 +131,32 @@ fun SettingsPlaybackAdvancedScreen() {
 				trailingContent = { Checkbox(checked = forceDirectPlay) },
 				onClick = { forceDirectPlay = !forceDirectPlay },
 				modifier = Modifier.focusKey("force_direct_play")
+			)
+		}
+		item {
+			var dv7FallbackMode by rememberPreference(userPreferences, UserPreferences.dv7FallbackMode)
+			val labelRes = when (dv7FallbackMode) {
+				Dv7FallbackMode.AUTO -> R.string.pref_dv7_fallback_auto
+				Dv7FallbackMode.ALWAYS -> R.string.pref_dv7_fallback_always
+				Dv7FallbackMode.DISABLED -> R.string.pref_dv7_fallback_disabled
+			}
+			val summaryRes = when (dv7FallbackMode) {
+				Dv7FallbackMode.AUTO -> R.string.pref_dv7_fallback_auto_summary
+				Dv7FallbackMode.ALWAYS -> R.string.pref_dv7_fallback_always_summary
+				Dv7FallbackMode.DISABLED -> R.string.pref_dv7_fallback_disabled_summary
+			}
+			ListButton(
+				headingContent = { Text(stringResource(R.string.pref_dv7_fallback_title)) },
+				captionContent = { Text(stringResource(summaryRes)) },
+				trailingContent = { Text(stringResource(labelRes)) },
+				onClick = {
+					dv7FallbackMode = when (dv7FallbackMode) {
+						Dv7FallbackMode.AUTO -> Dv7FallbackMode.ALWAYS
+						Dv7FallbackMode.ALWAYS -> Dv7FallbackMode.DISABLED
+						Dv7FallbackMode.DISABLED -> Dv7FallbackMode.AUTO
+					}
+				},
+				modifier = Modifier.focusKey("dv7_fallback_mode")
 			)
 		}
 

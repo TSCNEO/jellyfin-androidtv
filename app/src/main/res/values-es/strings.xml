@@ -726,4 +726,11 @@
     <string name="force_direct_play_title">Forzar Direct Play (experimental)</string>
     <string name="force_direct_play_description">Intenta reproducir el archivo original con el reproductor interno, ignorando límites de códec, bitrate, resolución y HDR. No se transcodificará automáticamente. Puede fallar o reproducirse sin sonido. Activado por defecto.</string>
     <string name="force_direct_play_failed">No se ha podido reproducir el archivo original. Desactiva Forzar Direct Play para utilizar la reproducción normal.</string>
+    <string name="pref_dv7_fallback_title">Dolby Vision Perfil 7 Fallback</string>
+    <string name="pref_dv7_fallback_auto">Automático</string>
+    <string name="pref_dv7_fallback_always">Siempre</string>
+    <string name="pref_dv7_fallback_disabled">Desactivado</string>
+    <string name="pref_dv7_fallback_auto_summary">Mapea DV Perfil 7 a HEVC (HDR10/HDR10+) si la tele no soporta Dolby Vision</string>
+    <string name="pref_dv7_fallback_always_summary">Mapear siempre DV Perfil 7 a HEVC (HDR10/HDR10+)</string>
+    <string name="pref_dv7_fallback_disabled_summary">Comportamiento original de ExoPlayer (sin fallback a HEVC para Perfil 7)</string>
 </resources>

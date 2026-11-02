@@ -26,6 +26,7 @@ import org.jellyfin.preference.intPreference
 import org.jellyfin.preference.longPreference
 import org.jellyfin.preference.store.SharedPreferenceStore
 import org.jellyfin.preference.stringPreference
+import org.jellyfin.playback.exoplayer.directplay.Dv7FallbackMode
 import org.jellyfin.sdk.model.api.MediaSegmentType
 import kotlin.time.Duration.Companion.minutes
 
@@ -181,6 +182,14 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		 * Dolby Vision Profile 8 device profile override.
 		 */
 		var doviProfile8Override = enumPreference("dovi_profile_8_override", HdrOverrideMode.AUTO)
+
+		/**
+		 * Dolby Vision Profile 7 fallback to HEVC (Direct Play).
+		 * AUTO: maps P7 to HEVC if display does not support Dolby Vision.
+		 * ALWAYS: always maps P7 to HEVC.
+		 * DISABLED: ExoPlayer standard behavior.
+		 */
+		var dv7FallbackMode = enumPreference("dv7_fallback_mode", Dv7FallbackMode.AUTO)
 
 		/* Live TV */
 		/**
