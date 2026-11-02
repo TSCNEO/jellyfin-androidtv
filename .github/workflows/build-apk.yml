@@ -50,13 +50,14 @@ jobs:
         id: vars
         run: |
           REVISION="${{ github.event.inputs.force_revision }}"
+          GRADLE_ARGS=""
           if [ -n "$REVISION" ]; then
-            export FORK_REVISION="$REVISION"
+            GRADLE_ARGS="-Pfork.revision=$REVISION"
           fi
           # Resolve version name from Gradle
-          VERSION_NAME=$(./gradlew properties -q | grep "^versionName:" | awk '{print $2}')
+          VERSION_NAME=$(./gradlew :app:printVersionName -q $GRADLE_ARGS | tail -n 1)
           if [ -z "$VERSION_NAME" ]; then
-            VERSION_NAME="0.20.0-beta.4-fork.1"
+            VERSION_NAME="0.20.0-beta.4-directplay.2"
           fi
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "Resolved version name: $VERSION_NAME"
@@ -88,7 +89,13 @@ jobs:
           export SIGNING_KEY_ALIAS="$KEY_ALIAS"
           export SIGNING_KEY_PASSWORD="$KEY_PASSWORD"
 
-          ./gradlew assembleRelease --stacktrace
+          REVISION="${{ github.event.inputs.force_revision }}"
+          GRADLE_ARGS=""
+          if [ -n "$REVISION" ]; then
+            GRADLE_ARGS="-Pfork.revision=$REVISION"
+          fi
+
+          ./gradlew assembleRelease $GRADLE_ARGS --stacktrace
 
           # Immediate wipe of sensitive keystore file
           rm -f "$KEYSTORE_FILE"

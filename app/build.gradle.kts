@@ -192,3 +192,9 @@ dependencies {
 	testImplementation(libs.kotest.assertions)
 	testImplementation(libs.mockk)
 }
+
+tasks.register("printVersionName") {
+	doLast {
+		println(android.defaultConfig.versionName)
+	}
+}
