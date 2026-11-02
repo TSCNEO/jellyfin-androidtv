@@ -1,91 +1,100 @@
 <h1 align="center">Jellyfin Direct Play (Android TV)</h1>
-<h3 align="center">Fork independiente con Force Direct Play e In-App Updater</h3>
-
-> **Nota del Fork:** Este repositorio (`TSCNEO/jellyfin-androidtv`) es un fork de [Jellyfin Android TV](https://github.com/jellyfin/jellyfin-androidtv) con optimizaciones avanzadas para homelabs y reproducción nativa de remuxes 4K (DCP, HEVC Level 6.2, Dolby Vision, TrueHD Atmos y DTS-HD).
-
-### Características Principales del Fork
-- **Force Direct Play:** Evita transcodificaciones arbitrarias causadas por límites de bitrate del servidor, niveles de códec HEVC elevados (6.1/6.2) o vetos de perfiles HDR.
-- **Identificador Desacoplado (`org.jellyfin.androidtv.directplay`):** Se instala en paralelo junto a la app oficial de Jellyfin sin conflictos ni sobreescrituras.
-- **In-App Auto-Updater (estilo Bambi):** Comprueba automáticamente nuevas versiones en GitHub Releases, descarga el APK y actualiza la app desde Ajustes -> Acerca de.
-- **CI/CD Automatizado:** Compilación y firma en GitHub Actions (`build-apk.yml`) y sincronización diaria con la rama `release-0.20.z` de upstream (`sync-upstream.yml`).
-
-Consulta la [Guía de Mantenimiento y Firma](docs/MAINTENANCE.md) para detalles sobre configuración de GitHub Secrets y firmas.
-
----
-
-<h3 align="center">Basado en el <a href="https://jellyfin.org">Proyecto Jellyfin</a></h3>
-
----
+<h3 align="center">Fork independiente optimizado para Direct Play nativo y Remuxes UHD / DCP</h3>
 
 <p align="center">
-<img alt="Logo banner" src="https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/banner-logo-solid.svg?sanitize=true"/>
-<br/><br/>
-<a href="https://github.com/jellyfin/jellyfin-androidtv">
-<img alt="GPL 2.0 License" src="https://img.shields.io/github/license/jellyfin/jellyfin-androidtv.svg"/>
-</a>
-<a href="https://github.com/jellyfin/jellyfin-androidtv/releases">
-<img alt="Current Release" src="https://img.shields.io/github/release/jellyfin/jellyfin-androidtv.svg"/>
-</a>
-<a href="https://translate.jellyfin.org/projects/jellyfin-android/jellyfin-androidtv/">
-<img alt="Translation Status" src="https://translate.jellyfin.org/widgets/jellyfin-android/-/jellyfin-androidtv/svg-badge.svg"/>
-</a>
-<br/>
-<a href="https://opencollective.com/jellyfin">
-<img alt="Donate" src="https://img.shields.io/opencollective/all/jellyfin.svg?label=backers"/>
-</a>
-<a href="https://features.jellyfin.org">
-<img alt="Feature Requests" src="https://img.shields.io/badge/fider-vote%20on%20features-success.svg"/>
-</a>
-<a href="https://matrix.to/#/+jellyfin:matrix.org">
-<img alt="Chat on Matrix" src="https://img.shields.io/matrix/jellyfin:matrix.org.svg?logo=matrix"/>
-</a>
-<br/>
-<a href="https://play.google.com/store/apps/details?id=org.jellyfin.androidtv">
-<img width="153" alt="Jellyfin on Google Play" src="https://jellyfin.org/images/store-icons/google-play.png"/>
-</a>
-<a href="https://www.amazon.com/gp/aw/d/B07TX7Z725">
-<img width="153" alt="Jellyfin on Amazon Appstore" src="https://jellyfin.org/images/store-icons/amazon.png"/>
-</a>
-<a href="https://f-droid.org/en/packages/org.jellyfin.androidtv/">
-<img width="153" alt="Jellyfin on F-Droid" src="https://jellyfin.org/images/store-icons/fdroid.png"/>
-</a>
-<br/>
-<a href="https://repo.jellyfin.org/releases/client/androidtv/">Download archive</a>
+  <a href="https://github.com/TSCNEO/jellyfin-androidtv/releases/latest">
+    <img src="https://img.shields.io/github/v/release/TSCNEO/jellyfin-androidtv?style=flat-square&color=00a4dc&label=latest%20release" alt="Latest Release" />
+  </a>
+  <a href="https://github.com/TSCNEO/jellyfin-androidtv/actions/workflows/build-apk.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/TSCNEO/jellyfin-androidtv/build-apk.yml?style=flat-square&label=build%20%26%20verify" alt="CI Status" />
+  </a>
+  <img src="https://img.shields.io/badge/package-org.jellyfin.androidtv.directplay-informational?style=flat-square" alt="Package ID" />
+  <img src="https://img.shields.io/badge/license-GPL--2.0-blue?style=flat-square" alt="License" />
 </p>
 
-Jellyfin for Android TV is a Jellyfin client for Android TV, Nvidia Shield, and Amazon Fire TV devices. We welcome all contributions and pull
-requests! If you have a larger feature in mind please open an issue so we can discuss the implementation before you start. 
+---
 
-## Building
+## 🚀 Instalación Rápida
 
-The app uses Gradle and requires the Android SDK. We recommend using Android Studio, which includes all required dependencies, for
-development and building. For manual building without Android Studio make sure a compatible JDK and Android SDK are installed and in your
-PATH, then use the Gradle wrapper (`./gradlew`) to build the project with the `assembleDebug` Gradle task to generate an apk file:
+Puedes instalar **Jellyfin Direct Play** en cualquier Android TV, Google TV o Amazon Fire TV sin necesidad de ordenador:
 
-```shell
-./gradlew assembleDebug
+### Vía Downloader App (AFTVnews)
+Abre la aplicación **Downloader** en tu televisor o dispositivo e introduce directamente:
+- **Código Downloader:** `6511579`
+- **Short URL:** `aftv.news/6511579`
+
+### Enlace Permanente de GitHub
+Si utilizas navegador o gestor de descargas, este enlace redirige **siempre** al APK de la última release disponible:
+```text
+https://github.com/TSCNEO/jellyfin-androidtv/releases/latest/download/jellyfin-directplay.apk
 ```
 
-The task will create an APK file in the `/app/build/outputs/apk/debug` directory. This APK file uses a different app-id from our stable
-builds and can be manually installed to your device.
+### Vía ADB (Red local o USB)
+```bash
+adb connect <IP_DISPOSITIVO>:5555
+adb install -r jellyfin-directplay.apk
+```
 
-## Branching
+---
 
-The `master` branch is the primary development branch and the target for all pull requests. It is **unstable** and may contain breaking
-changes or unresolved bugs. For production deployments and forks, always use the latest `release-x.y.z` branch. Do not base production work
-or long-lived forks on `master`.
+## 🎯 ¿Por qué este fork? (Motivación)
 
-Release branches are created at the start of a beta cycle and are kept up to date with each published release. Maintainers will cherry-pick
-selected changes into release branches as needed for backports. These branches are reused for subsequent patch releases.
+### 1. El problema con la aplicación oficial de Upstream
+La aplicación oficial de Jellyfin para Android TV está diseñada con un enfoque conservador de compatibilidad universal, orientado a evitar fallos en televisores antiguos o decodificadores de gama baja. Para ello, el cliente anuncia perfiles de reproducción restrictivos que el servidor interpreta al negociar el stream:
+- **Límites de HEVC por defecto (Level 5.1):** Contenidos máster de alta tasa de transferencia, remuxes cinematográficos UHD o ripeos DCP codificados en **HEVC Level 6.1 o 6.2** disparan una transcodificación innecesaria en el servidor Jellyfin.
+- **Vetos por bitrate o perfiles HDR:** Ficheros con picos superiores a 100 Mbps o con capas Dolby Vision (perfiles 7 u 8) provocan frecuentemente que el servidor intente recomprimir el vídeo a H.264 / SDR, consumiendo ingentes recursos de CPU/GPU y destruyendo la fidelidad visual y los metadatos dinámicos.
+- **Conversión forzada de audios sin pérdida:** Pistas TrueHD Atmos o DTS-HD MA se ven forzadas a conversión cuando el receptor AV o barra de sonido conectada al dispositivo admite passthrough nativo completo sin pérdida.
 
-## Translating
+### 2. La realidad del hardware moderno
+Reproductores multimedia actuales (como **Homatics Box R 4K Plus**, **Nvidia Shield Pro**, **Google TV Streamer** o dispositivos con chips Amlogic S905X4 / Realtek) cuentan con aceleración por hardware completa capaz de decodificar vídeo 4K HEVC Level 6.2 a alto bitrate y realizar bitstream passthrough de TrueHD Atmos y DTS-HD sin transcodificar absolutamente nada.
 
-Translations can be improved very easily from our [Weblate](https://translate.jellyfin.org/projects/jellyfin-android/jellyfin-androidtv)
-instance. Look through the following graphic to see if your native language could use some work! We cannot accept changes to translation
-files via pull requests.
+### 3. Qué aporta Jellyfin Direct Play
+- **Force Direct Play por defecto:** Omite las restricciones artificiales del cliente para reproducción bajo demanda interna. El stream original intacto se entrega directamente al decodificador hardware (`MediaCodec` / ExoPlayer).
+- **Coexistencia en paralelo (`org.jellyfin.androidtv.directplay`):** Identificador de paquete desacoplado. Permite tener instalada la app oficial de Jellyfin y Jellyfin Direct Play simultáneamente en la misma tele sin conflictos ni colisiones.
+- **In-App Auto-Updater integrado:** Inspirado en la arquitectura de Bambi, la aplicación consulta la API de GitHub Releases. Cuando hay una nueva versión, te avisa en **Ajustes -> Quienes somos** y se actualiza a sí misma con un solo clic vía `PackageInstaller`.
+- **Firma criptográfica persistente:** Compilación y firma automatizada en GitHub Actions con un keystore de producción seguro. Esto garantiza que las actualizaciones internas se instalen sobre la app existente sin errores de firma (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`).
+- **Identificación propia en el servidor:** El cliente se reporta como `Jellyfin Direct Play`, permitiendo al administrador auditar y diferenciar de inmediato las sesiones directas de las oficiales en el panel de control.
+- **Sincronización automatizada con Upstream:** Workflow diario en GitHub Actions (`sync-upstream.yml`) que sigue las ramas estables oficiales (`release-0.20.z` o superior), garantizando estabilidad sin absorber cambios inestables de `master`.
 
-<p align="center">
-<a href="https://translate.jellyfin.org/engage/jellyfin-android/">
-<img alt="Detailed Translation Status" src="https://translate.jellyfin.org/widgets/jellyfin-android/-/jellyfin-androidtv/multi-auto.svg"/>
-</a>
-</p>
+---
+
+## 🛠️ Estructura de Versiones
+
+El versionado de este fork sigue una convención clara y determinista:
+```text
+<upstreamVersion>-directplay.<iteracion>
+```
+- Ejemplo: `0.20.0-beta.4-directplay.2`
+- El código numérico de versión de Android (`versionCode`) se incrementa de forma monótona:
+  `versionCode = baseCode * 100 + iteracion` (ej: `20000402`), garantizando actualizaciones automáticas válidas para el gestor de paquetes de Android.
+
+---
+
+## 📦 Compilación y Desarrollo
+
+Para compilar el proyecto localmente requieres JDK 21 y Android SDK:
+
+```bash
+# Ejecutar tests unitarios
+./gradlew test
+
+# Compilar versión debug
+./gradlew assembleDebug
+
+# Compilar versión release firmada (requiere variables de entorno de keystore)
+export KEYSTORE_FILE="/ruta/a/release.keystore"
+export KEYSTORE_PASSWORD="password"
+export SIGNING_KEY_ALIAS="alias"
+export SIGNING_KEY_PASSWORD="password"
+./gradlew assembleRelease
+```
+
+Consulta la [Guía de Mantenimiento y Firma](docs/MAINTENANCE.md) para más detalles sobre CI/CD y secretos de GitHub Actions.
+
+---
+
+## 📄 Licencia y Reconocimientos
+
+Este proyecto es un fork de [Jellyfin Android TV](https://github.com/jellyfin/jellyfin-androidtv), distribuido bajo la licencia **GNU General Public License v2.0**.  
+Mantenido por [TSCNEO](https://github.com/TSCNEO).  
+Agradecimientos especiales al equipo de desarrollo de [Jellyfin](https://jellyfin.org) por la base del cliente Android TV.
