@@ -92,12 +92,11 @@ Al solicitar actualizar la aplicación desde el menú *Acerca de* (`SettingsAbou
 En ExoPlayer (y Media3), la gestión por defecto del búfer (`DefaultLoadControl`) dimensiona el asignador de muestras en función del conjunto de pistas activas y aplica límites de memoria derivados de perfiles genéricos (~130 MB). Al reproducir contenidos de streaming o archivos locales con bitrates muy elevados (remuxes 4K UHD Blu-ray con picos superiores a 80-100 Mbps), el búfer por defecto se agota con facilidad o se detiene prematuramente al alcanzar el límite estricto de bytes antes de cumplir los umbrales de duración temporal, provocando paradas e interrupciones constantes ("hipo" o re-buffering).
 
 ### Solución Implementada
-El fork **Jellyfin Direct Play** reestructura el control de carga tanto en `VideoManager.java` (backend legacy) como en `ExoPlayerBackend.kt` (Media3) y `PlaybackModule.kt`, introduciendo cinco modos seleccionables en **Ajustes → Reproducción → Avanzado → Búfer de red (RAM)**:
+El fork **Jellyfin Direct Play** reestructura el control de carga tanto en `VideoManager.java` (backend legacy) como en `ExoPlayerBackend.kt` (Media3) y `PlaybackModule.kt`, introduciendo cuatro modos seleccionables en **Ajustes → Reproducción → Avanzado → Búfer de red (RAM)**:
 
 | Modo | Nombre en UI | Duración (Min..Max) | Límite de RAM (`targetBufferBytes`) | Priorizar tiempo sobre tamaño | Caso de uso recomendado |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **AUTO** | Adaptativo | 25s .. 60s | Dinámico (hasta 256 MB) | `true` | Ajuste dinámico inteligente para la mayoría de streams. |
-| **AGGRESSIVE** | Agresivo | 60s .. 120s | **288 MB** | `true` | Dispositivos con 3 GB de RAM o más (filtrado dinámicamente en UI). Calibrado para no rebasar el límite ART Dalvik de 384 MB (`dalvik.vm.heapsize`). |
 | **HIGH** | Alto | 25s .. 60s | **256 MB** | `true` | Ideal para Wi-Fi o remuxes 4K de alto bitrate. |
 | **STANDARD** | Estándar | Por defecto ExoPlayer | Por defecto (~130 MB) | `false` | Comportamiento estándar de upstream. |
 | **LOW** | Bajo | 15s .. 30s | **64 MB** | `false` | Para dispositivos con poca memoria libre. |

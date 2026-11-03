@@ -262,12 +262,6 @@ public class VideoManager {
         int bufferForPlaybackMs = DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS;
         int bufferForPlaybackAfterRebufferMs = DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS;
         switch (bufferLength) {
-            case AGGRESSIVE:
-                minBufferMs = 60_000;
-                maxBufferMs = 120_000;
-                bufferForPlaybackMs = 2_000;
-                bufferForPlaybackAfterRebufferMs = 4_000;
-                break;
             case AUTO:
             case HIGH:
                 minBufferMs = 25_000;
