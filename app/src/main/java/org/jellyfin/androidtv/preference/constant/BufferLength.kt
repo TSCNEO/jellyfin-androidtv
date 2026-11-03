@@ -23,10 +23,12 @@ const val LOW_BUFFER_BYTES: Int = 64 * 1024 * 1024
  *   devices with 1-2 GB of RAM this is the value that decides whether a high bitrate remux can be kept
  *   fully in memory.
  *
- * [prioritizeTimeOverSize] is the `DefaultLoadControl.setPrioritizeTimeOverSizeThresholds` flag. It MUST be
- * `true` for every profile that declares a [targetBufferBytes] budget, otherwise ExoPlayer stops loading as
- * soon as the byte budget is exhausted even when [minBufferDuration] has not been reached yet, which
- * manifests as permanent re-buffering on high bitrate streams.
+ * [prioritizeTimeOverSize] is the `DefaultLoadControl.setPrioritizeTimeOverSizeThresholds` flag. When it is
+ * `true` the duration thresholds win and [targetBufferBytes] only works as an advisory hint: the loader keeps
+ * going until [maxBufferDuration] even after the byte budget is exhausted, so the allocator grows past the
+ * declared ceiling (a 60 second window at 80-100 Mbps is 600-750 MB of samples). When it is `false` the byte
+ * budget is authoritative: loading stops as soon as the allocator is full and resumes as playback releases
+ * samples, so the profile behaves as a fixed RAM window that refills continuously.
  */
 enum class BufferLength(
 	override val nameRes: Int,
@@ -54,8 +56,10 @@ enum class BufferLength(
 	),
 
 	/**
-	 * High profile: reserves a full 256 MiB sample budget and keeps the same 25-60 second window. This is the
-	 * profile that removes hiccups on Wi-Fi links and on streams with bitrate spikes.
+	 * High profile: fills a real 256 MiB sample budget and keeps requesting as playback releases samples. The
+	 * 25-60 second window is only a ceiling for low bitrate streams: on high bitrate remuxes the byte budget is
+	 * reached first (256 MiB is roughly 25 seconds at 80 Mbps) and the loader refills up to that budget instead
+	 * of stopping at [minBufferDuration].
 	 */
 	HIGH(
 		nameRes = R.string.playback_buffer_high,
@@ -65,7 +69,7 @@ enum class BufferLength(
 		bufferForPlaybackDuration = 1500.milliseconds,
 		bufferForPlaybackAfterRebufferDuration = 3.seconds,
 		targetBufferBytes = HIGH_BUFFER_BYTES,
-		prioritizeTimeOverSize = true,
+		prioritizeTimeOverSize = false,
 	),
 
 	/**

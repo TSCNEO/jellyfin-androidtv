@@ -97,11 +97,17 @@ El fork **Jellyfin Direct Play** reestructura el control de carga tanto en `Vide
 | Modo | Nombre en UI | Duración (Min..Max) | Límite de RAM (`targetBufferBytes`) | Priorizar tiempo sobre tamaño | Caso de uso recomendado |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **AUTO** | Adaptativo | 25s .. 60s | Dinámico (hasta 256 MB) | `true` | Ajuste dinámico inteligente para la mayoría de streams. |
-| **HIGH** | Alto | 25s .. 60s | **256 MB** | `true` | Ideal para Wi-Fi o remuxes 4K de alto bitrate. |
+| **HIGH** | Alto | 25s .. 60s | **256 MB** | `false` | Remuxes 4K de alto bitrate: el tope real es la RAM, no la ventana. |
 | **STANDARD** | Estándar | Por defecto ExoPlayer | Por defecto (~130 MB) | `false` | Comportamiento estándar de upstream. |
 | **LOW** | Bajo | 15s .. 30s | **64 MB** | `false` | Para dispositivos con poca memoria libre. |
 
 #### El Fix de `DefaultLoadControl`
-Para evitar que ExoPlayer detenga la precarga al alcanzar el límite de bytes antes de acumular suficientes segundos de reproducción, se configura explícitamente:
+El límite de bytes solo es real si los umbrales temporales no lo ignoran, así que se pasan ambos valores y el flag depende del perfil:
 - `.setTargetBufferBytes(targetBufferBytes)` (cuando aplique).
-- `.setPrioritizeTimeOverSizeThresholds(true)`: Asegura que el umbral temporal (`minBufferDuration`) prevalezca sobre el límite de tamaño, evitando bloqueos de carga en streams de alto bitrate.
+- `.setPrioritizeTimeOverSizeThresholds(prioritizeTimeOverSize)`: con `true` (solo `AUTO`) el umbral temporal prevalece y el presupuesto de bytes queda como sugerencia, así que el asignador puede crecer por encima de él. Con `false` (perfiles con presupuesto: `HIGH` y `LOW`) el tope de RAM es efectivo.
+
+#### Ciclo de precarga (histéresis)
+`DefaultLoadControl.shouldContinueLoading` se evalúa en cada iteración del hilo interno con una banda entre mínimo y máximo:
+- Carga hasta llenar `maxBufferDuration` **o** el presupuesto de bytes, y en ese punto deja de pedir al servidor.
+- Reanuda cuando el búfer baja de `minBufferDuration`, no cuando se vacía; entre ambos valores conserva el estado anterior.
+- Dejar de pedir **no libera** memoria: las muestras ya descargadas siguen en el asignador. El pico de RAM lo marca lo acumulado antes de detenerse, por eso el presupuesto de bytes solo protege de verdad cuando `prioritizeTimeOverSize` está en `false`.

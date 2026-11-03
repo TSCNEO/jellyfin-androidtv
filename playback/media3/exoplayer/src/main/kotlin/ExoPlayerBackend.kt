@@ -127,11 +127,11 @@ class ExoPlayerBackend(
 				// track set and a high bitrate stream can exhaust it before the duration thresholds are met.
 				exoPlayerOptions.targetBufferBytes?.let { targetBufferBytes ->
 					setTargetBufferBytes(targetBufferBytes)
-					// Time thresholds must win over the byte budget, otherwise loading stalls permanently
-					// once the budget is full even though minBufferDuration has not been reached yet.
-					setPrioritizeTimeOverSizeThresholds(true)
 				}
-				if (exoPlayerOptions.prioritizeTimeOverSize) setPrioritizeTimeOverSizeThresholds(true)
+				// With this on the byte budget becomes advisory and the duration window wins, so the allocator can
+				// grow past targetBufferBytes. Profiles that declare a budget keep it off so the RAM ceiling is
+				// real and loading resumes as playback releases samples.
+				setPrioritizeTimeOverSizeThresholds(exoPlayerOptions.prioritizeTimeOverSize)
 			}
 			.build()
 

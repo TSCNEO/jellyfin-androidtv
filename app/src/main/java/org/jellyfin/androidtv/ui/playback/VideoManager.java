@@ -287,12 +287,10 @@ public class VideoManager {
             // Explicit RAM budget for the sample allocator (256 MB for HIGH, 64 MB for LOW).
             loadControlBuilder.setTargetBufferBytes(targetBufferBytes);
         }
-        if (targetBufferBytes != null || bufferLength.getPrioritizeTimeOverSize()) {
-            // Without this, ExoPlayer stops loading as soon as the byte budget is exhausted even when
-            // minBufferDuration has not been reached yet, which shows up as endless re-buffering on
-            // high bitrate streams.
-            loadControlBuilder.setPrioritizeTimeOverSizeThresholds(true);
-        }
+        // With this on the byte budget becomes advisory and the duration window wins, so the allocator can grow
+        // past targetBufferBytes. Profiles that declare a budget keep it off so the RAM ceiling is real and
+        // loading resumes as playback releases samples.
+        loadControlBuilder.setPrioritizeTimeOverSizeThresholds(bufferLength.getPrioritizeTimeOverSize());
         exoPlayerBuilder.setLoadControl(loadControlBuilder.build());
 
         exoPlayerBuilder.setAudioAttributes(new AudioAttributes.Builder()

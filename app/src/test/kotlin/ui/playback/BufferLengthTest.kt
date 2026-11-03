@@ -19,12 +19,12 @@ class BufferLengthTest : FunSpec({
 		BufferLength.AUTO.prioritizeTimeOverSize shouldBe true
 	}
 
-	test("BufferLength HIGH has 256MB budget and time priority") {
+	test("BufferLength HIGH has 256MB budget and byte priority") {
 		BufferLength.HIGH.minBufferDuration shouldBe 25.seconds
 		BufferLength.HIGH.maxBufferDuration shouldBe 60.seconds
 		BufferLength.HIGH.targetBufferBytes shouldBe 268435456
 		BufferLength.HIGH.targetBufferBytes shouldBe HIGH_BUFFER_BYTES
-		BufferLength.HIGH.prioritizeTimeOverSize shouldBe true
+		BufferLength.HIGH.prioritizeTimeOverSize shouldBe false
 	}
 
 	test("BufferLength STANDARD has default null durations and targetBufferBytes") {
@@ -48,9 +48,9 @@ class BufferLengthTest : FunSpec({
 		BufferLength.HIGH.targetBufferBytes!! shouldBe 4 * BufferLength.LOW.targetBufferBytes!!
 	}
 
-	test("high capacity profiles prioritize time over size to avoid network hiccups") {
+	test("only the adaptive profile prioritizes time over the byte budget") {
 		BufferLength.AUTO.prioritizeTimeOverSize shouldBe true
-		BufferLength.HIGH.prioritizeTimeOverSize shouldBe true
+		BufferLength.HIGH.prioritizeTimeOverSize shouldBe false
 		BufferLength.STANDARD.prioritizeTimeOverSize shouldBe false
 		BufferLength.LOW.prioritizeTimeOverSize shouldBe false
 	}
