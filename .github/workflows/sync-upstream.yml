@@ -26,6 +26,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: beta
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -72,14 +73,17 @@ jobs:
         id: check
         run: |
           TARGET="${{ steps.upstream.outputs.target_branch }}"
-          # Check new commits from upstream that are not in HEAD
+          # Ensure local branch beta tracks origin/beta
+          git checkout -B beta origin/beta || git checkout -B beta
+
+          # Check new commits from upstream that are not in beta (HEAD)
           COMMITS=$(git log --oneline HEAD..upstream/"$TARGET" || true)
 
           if [ -z "$COMMITS" ]; then
-            echo "Fork is completely up to date with upstream/$TARGET. Nothing to do."
+            echo "Fork branch 'beta' is completely up to date with upstream/$TARGET. Nothing to do."
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
-            echo "Found new commits in upstream/$TARGET:"
+            echo "Found new commits in upstream/$TARGET not yet in beta:"
             echo "$COMMITS"
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
             echo "commit_count=$(echo "$COMMITS" | wc -l)" >> "$GITHUB_OUTPUT"
@@ -92,25 +96,46 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TARGET="${{ steps.upstream.outputs.target_branch }}"
-          echo "Attempting merge of upstream/$TARGET into main..."
+          echo "Attempting merge of upstream/$TARGET into beta..."
 
-          if ! git merge --no-edit upstream/"$TARGET"; then
-            echo "Merge conflict detected!"
-            git merge --abort || true
+          git checkout beta
 
-            SYNC_BRANCH="sync/upstream-${TARGET}-$(date +%Y%m%d%H%M)"
-            git checkout -b "$SYNC_BRANCH"
-            git merge upstream/"$TARGET" || true
-            git push origin "$SYNC_BRANCH" --force
+          if ! git merge --no-commit --no-ff upstream/"$TARGET"; then
+            echo "Merge conflict detected! Restoring fork workflows first..."
+            git checkout HEAD -- .github/workflows/ || true
 
-            gh pr create \
-              --title "Upstream Sync Conflict: $TARGET" \
-              --body "Se han detectado cambios upstream en \`upstream/$TARGET\` con conflictos que requieren resolución manual. Rama de trabajo: \`$SYNC_BRANCH\`." \
-              --base main \
-              --head "$SYNC_BRANCH" || true
+            # Check if there are still unresolved conflicts
+            UNRESOLVED=$(git diff --name-only --diff-filter=U || true)
+            if [ -n "$UNRESOLVED" ]; then
+              echo "Unresolvable merge conflicts detected in code files:"
+              echo "$UNRESOLVED"
+              git merge --abort || true
 
-            exit 1
+              SYNC_BRANCH="sync/upstream-${TARGET}-$(date +%Y%m%d%H%M)"
+              git checkout -b "$SYNC_BRANCH"
+              git merge upstream/"$TARGET" || true
+              git checkout HEAD -- .github/workflows/ || true
+              git push origin "$SYNC_BRANCH" --force
+
+              gh pr create \
+                --title "Upstream Sync Conflict: $TARGET" \
+                --body "Se han detectado cambios upstream en \`upstream/$TARGET\` con conflictos que requieren resolución manual. Rama de trabajo: \`$SYNC_BRANCH\`." \
+                --base beta \
+                --head "$SYNC_BRANCH" || true
+
+              exit 1
+            fi
           fi
+
+          # Always preserve fork workflows to prevent workflow permissions errors and keep fork custom CI
+          git checkout HEAD -- .github/workflows/
+
+          if git diff --cached --quiet; then
+            echo "No changes after preserving fork workflows. Nothing to commit."
+            exit 0
+          fi
+
+          git commit -m "chore(sync): merge upstream/$TARGET into beta preserving fork workflows"
 
           echo "Merge clean! Running test suite to ensure Direct Play patches remain compatible..."
           chmod +x gradlew
@@ -119,10 +144,10 @@ jobs:
             git reset --hard HEAD~1
             gh issue create \
               --title "Sync Upstream Failed Tests: $TARGET" \
-              --body "La sincronización automática con \`upstream/$TARGET\` se fusionó limpiamente pero falló la suite de tests unitarios. Se ha revertido el merge para proteger la rama main." || true
+              --body "La sincronización automática con \`upstream/$TARGET\` se fusionó limpiamente pero falló la suite de tests unitarios. Se ha revertido el merge para proteger la rama beta." || true
             exit 1
           fi
 
-          echo "Tests passed! Pushing to origin main..."
-          git push origin main
-          echo "Sync successful and pushed to main."
+          echo "Tests passed! Pushing to origin beta..."
+          git push origin beta
+          echo "Sync successful and pushed to beta."

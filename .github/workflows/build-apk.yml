@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - main
+      - beta
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
+      - beta
   workflow_dispatch:
     inputs:
       force_revision:
@@ -49,16 +51,39 @@ jobs:
       - name: Determine Version and Configuration
         id: vars
         run: |
+          IS_BETA="false"
+          if [ "${{ github.ref }}" = "refs/heads/beta" ]; then
+            IS_BETA="true"
+          elif [[ "${{ github.ref }}" == refs/tags/* && "${{ github.ref }}" == *"-beta"* ]]; then
+            IS_BETA="true"
+          fi
+          echo "is_beta=$IS_BETA" >> "$GITHUB_OUTPUT"
+          echo "Is beta channel: $IS_BETA"
+
           REVISION="${{ github.event.inputs.force_revision }}"
           GRADLE_ARGS=""
           if [ -n "$REVISION" ]; then
             GRADLE_ARGS="-Pfork.revision=$REVISION"
           fi
+          if [ "$IS_BETA" = "true" ]; then
+            GRADLE_ARGS="$GRADLE_ARGS -Pfork.channel=beta"
+          fi
+
           # Resolve version name from Gradle
           VERSION_NAME=$(./gradlew :app:printVersionName -q $GRADLE_ARGS | tail -n 1)
           if [ -z "$VERSION_NAME" ]; then
-            VERSION_NAME="0.20.0-beta.4-directplay.2"
+            if [ "$IS_BETA" = "true" ]; then
+              VERSION_NAME="0.20.0-beta.4-directplay.13-beta"
+            else
+              VERSION_NAME="0.20.0-beta.4-directplay.12"
+            fi
           fi
+
+          # Ensure -beta suffix is present if on beta channel
+          if [ "$IS_BETA" = "true" ] && [[ "$VERSION_NAME" != *"-beta"* ]]; then
+            VERSION_NAME="${VERSION_NAME}-beta"
+          fi
+
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "Resolved version name: $VERSION_NAME"
 
@@ -94,6 +119,9 @@ jobs:
           if [ -n "$REVISION" ]; then
             GRADLE_ARGS="-Pfork.revision=$REVISION"
           fi
+          if [ "${{ steps.vars.outputs.is_beta }}" = "true" ]; then
+            GRADLE_ARGS="$GRADLE_ARGS -Pfork.channel=beta"
+          fi
 
           ./gradlew assembleRelease $GRADLE_ARGS --stacktrace
 
@@ -112,15 +140,24 @@ jobs:
           mkdir -p dist
           VERSION="${{ steps.vars.outputs.version_name }}"
           IS_SIGNED="${{ steps.vars.outputs.has_signing }}"
+          IS_BETA="${{ steps.vars.outputs.is_beta }}"
 
           if [ "$IS_SIGNED" = "true" ]; then
             SRC_APK=$(find app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
             DEST_NAME="Jellyfin-DirectPlay-${VERSION}.apk"
-            GENERIC_NAME="jellyfin-directplay.apk"
+            if [ "$IS_BETA" = "true" ]; then
+              GENERIC_NAME="jellyfin-directplay-beta.apk"
+            else
+              GENERIC_NAME="jellyfin-directplay.apk"
+            fi
           else
             SRC_APK=$(find app/build/outputs/apk/debug/ -name "*.apk" | head -n 1)
             DEST_NAME="Jellyfin-DirectPlay-${VERSION}-debug.apk"
-            GENERIC_NAME="jellyfin-directplay-debug.apk"
+            if [ "$IS_BETA" = "true" ]; then
+              GENERIC_NAME="jellyfin-directplay-beta-debug.apk"
+            else
+              GENERIC_NAME="jellyfin-directplay-debug.apk"
+            fi
           fi
 
           if [ ! -f "$SRC_APK" ]; then
@@ -164,7 +201,7 @@ jobs:
           retention-days: 30
 
       - name: Publish GitHub Release
-        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) && steps.vars.outputs.has_signing == 'true'
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta' || startsWith(github.ref, 'refs/tags/')) && steps.vars.outputs.has_signing == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -174,15 +211,30 @@ jobs:
           SHA="${{ steps.package.outputs.sha_path }}"
           GENERIC_APK="${{ steps.package.outputs.generic_apk_path }}"
           GENERIC_SHA="${{ steps.package.outputs.generic_sha_path }}"
+          IS_BETA="${{ steps.vars.outputs.is_beta }}"
 
-          NOTES="### Jellyfin Direct Play ${VERSION}
+          if [ "$IS_BETA" = "true" ]; then
+            RELEASE_FLAGS="--prerelease"
+            TITLE="Jellyfin Direct Play ${VERSION} (Beta Pre-release)"
+            NOTES="### Jellyfin Direct Play ${VERSION} (Beta)
+          - Versión **Beta** de pruebas sincronizada con upstream para validación antes de promocionar a producción.
+          - Fork independiente con **Force Direct Play** activado por defecto (desactiva transcodificaciones innecesarias de HEVC, TrueHD, DTS y perfiles HDR).
+          - Identificador independiente: \`org.jellyfin.androidtv.directplay\` (instalación simultánea con la app oficial).
+          - Identificador de cliente en servidor: \`Jellyfin Direct Play\`.
+          - Asset directo: \`jellyfin-directplay-beta.apk\`.
+          - Mantenido por TSCNEO."
+          else
+            RELEASE_FLAGS="--latest"
+            TITLE="Jellyfin Direct Play ${VERSION}"
+            NOTES="### Jellyfin Direct Play ${VERSION}
           - Fork independiente con **Force Direct Play** activado por defecto (desactiva transcodificaciones innecesarias de HEVC, TrueHD, DTS y perfiles HDR).
           - Identificador independiente: \`org.jellyfin.androidtv.directplay\` (instalación simultánea con la app oficial).
           - Identificador de cliente en servidor: \`Jellyfin Direct Play\`.
           - In-app auto-updater integrado con GitHub Releases y Downloader URL fija (\`jellyfin-directplay.apk\`).
           - Mantenido por TSCNEO."
+          fi
 
           gh release create "$TAG" "$APK" "$SHA" "$GENERIC_APK" "$GENERIC_SHA" \
-            --title "Jellyfin Direct Play ${VERSION}" \
+            --title "$TITLE" \
             --notes "$NOTES" \
-            --latest || gh release upload "$TAG" "$APK" "$SHA" "$GENERIC_APK" "$GENERIC_SHA" --clobber
+            $RELEASE_FLAGS || gh release upload "$TAG" "$APK" "$SHA" "$GENERIC_APK" "$GENERIC_SHA" --clobber

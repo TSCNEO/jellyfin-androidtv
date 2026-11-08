@@ -17,7 +17,9 @@ android {
 		applicationId = baseAppId
 		val baseVersionName = project.getVersionName("0.20.0-beta.4")
 		val forkRevision = project.getProperty("fork.revision")?.toInt() ?: 12
-		versionName = "$baseVersionName-directplay.$forkRevision"
+		val channel = project.getProperty("fork.channel") ?: ""
+		val channelSuffix = if (channel.isNotEmpty()) "-$channel" else ""
+		versionName = "$baseVersionName-directplay.$forkRevision$channelSuffix"
 		val baseCode = getVersionCode(baseVersionName)
 		versionCode = baseCode * 100 + forkRevision
 	}
