@@ -13,7 +13,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  issues: write
   actions: write
 
 jobs:
@@ -130,6 +129,51 @@ jobs:
           # Always preserve fork workflows to prevent workflow permissions errors and keep fork custom CI
           git checkout HEAD -- .github/workflows/
 
+          # --- Webtranslate duplicate-key sanitization -----------------------
+          # Weblate merges regularly introduce duplicated <string name="...">
+          # keys (Finnish in particular). Fix them BEFORE committing so beta
+          # never carries unbuildable resources.
+          STRINGS_TOOL=".github/scripts/strings-tools.py"
+          RES_CHANGED=$(git diff --cached --name-only -- 'app/src/main/res/values*/strings.xml' || true)
+
+          if [ -n "$RES_CHANGED" ] && [ -f "$STRINGS_TOOL" ]; then
+            # 1) Finnish: take the pristine upstream copy (canonical translation set).
+            if echo "$RES_CHANGED" | grep -qx 'app/src/main/res/values-fi/strings.xml'; then
+              echo "Resetting app/src/main/res/values-fi/strings.xml to upstream/$TARGET"
+              git checkout "upstream/$TARGET" -- 'app/src/main/res/values-fi/strings.xml' || true
+            fi
+
+            # 2) Structural cleanup of any remaining duplicate keys.
+            DUP_FILES=""
+            for f in $RES_CHANGED; do
+              [ -f "$f" ] || continue
+              COUNT=$(grep -Eo '<string[[:space:]]+name="[^"]+"' "$f" | sort | uniq -d | wc -l)
+              if [ "$COUNT" -gt 0 ]; then
+                DUP_FILES="$DUP_FILES $f"
+              fi
+            done
+
+            if [ -n "$DUP_FILES" ]; then
+              echo "Duplicate <string> keys detected in:$DUP_FILES -- cleaning before commit"
+              # shellcheck disable=SC2086
+              python3 "$STRINGS_TOOL" dedupe $DUP_FILES
+            fi
+
+            # 3) Hard gate: no duplicates, well-formed XML.
+            # shellcheck disable=SC2086
+            if ! python3 "$STRINGS_TOOL" verify $RES_CHANGED; then
+              echo "Unrecoverable duplicate/invalid string resources after merge. Aborting sync."
+              git merge --abort 2>/dev/null || true
+              git reset --hard HEAD
+              exit 1
+            fi
+
+            git add -- 'app/src/main/res/values*/strings.xml'
+          elif [ -n "$RES_CHANGED" ]; then
+            echo "::warning::$STRINGS_TOOL not found; skipping duplicate-key sanitization."
+          fi
+          # ------------------------------------------------------------------
+
           if git diff --cached --quiet; then
             echo "No changes after preserving fork workflows. Nothing to commit."
             exit 0
@@ -140,11 +184,31 @@ jobs:
           echo "Merge clean! Running test suite to ensure Direct Play patches remain compatible..."
           chmod +x gradlew
           if ! ./gradlew test --stacktrace; then
-            echo "Tests failed after merge!"
+            echo "Tests failed after merge! Rolling back beta to its previous state..."
+            MERGE_SHA=$(git rev-parse HEAD)
             git reset --hard HEAD~1
-            gh issue create \
-              --title "Sync Upstream Failed Tests: $TARGET" \
-              --body "La sincronización automática con \`upstream/$TARGET\` se fusionó limpiamente pero falló la suite de tests unitarios. Se ha revertido el merge para proteger la rama beta." || true
+
+            # GitHub Issues is disabled on this fork (has_issues: false), so
+            # `gh issue create` fails with a GraphQL error. Report through the
+            # step summary + error annotation instead (never fatal).
+            {
+              echo "### :warning: Sync upstream/$TARGET: tests failed"
+              echo ""
+              echo "El merge de \`upstream/$TARGET\` en \`beta\` se aplicó limpiamente, pero \`./gradlew test\` falló."
+              echo ""
+              echo "- El merge fue revertido con \`git reset --hard HEAD~1\`: **beta no se ha modificado**."
+              echo "- Resolución manual: \`git checkout -B beta origin/beta && git merge upstream/$TARGET\`, corregir los tests y relanzar este workflow."
+            } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+            echo "::error title=Sync upstream/$TARGET failed tests::Merge was clean but ./gradlew test failed. beta left untouched; merge reverted."
+            echo "Tests failed after merge. beta was NOT modified."
+
+            # Best-effort commit comment on the (pushed) beta tip: the
+            # commit-comments API works even when Issues are disabled,
+            # unlike `gh issue create`.
+            gh api -X POST "repos/${{ github.repository }}/commits/$(git rev-parse HEAD)/comments" \
+              -f body="⚠️ Sync automática con \`upstream/$TARGET\` revertida: el merge (${MERGE_SHA:0:9}) fue limpio pero \`./gradlew test\` falló. beta no se ha modificado." \
+              >/dev/null 2>&1 || echo "::notice::No se pudo publicar el comentario de commit (no bloqueante)."
+
             exit 1
           fi
 
