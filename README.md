@@ -66,9 +66,9 @@ El versionado de este fork sigue una convención clara y determinista:
 ```text
 <upstreamVersion>-directplay.<iteracion>
 ```
-- Ejemplo: `0.20.0-beta.4-directplay.5`
+- Ejemplo: `0.20.0-directplay.13`
 - El código numérico de versión de Android (`versionCode`) se incrementa de forma monótona:
-  `versionCode = baseCode * 100 + iteracion` (ej: `20000405`), garantizando actualizaciones automáticas válidas para el gestor de paquetes de Android.
+  `versionCode = baseCode * 100 + iteracion` (ej: `20009913`), garantizando actualizaciones automáticas válidas para el gestor de paquetes de Android.
 
 ---
 

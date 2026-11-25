@@ -15,9 +15,16 @@ android {
 
 		val baseAppId = "org.jellyfin.androidtv.directplay"
 		applicationId = baseAppId
-		val baseVersionName = project.getVersionName("0.20.0-beta.4")
+		val baseVersionName = project.getVersionName("0.20.0")
 		val forkRevision = project.getProperty("fork.revision")?.toInt() ?: 13
-		val channel = project.getProperty("fork.channel") ?: "beta"
+		// Channel: an explicit -Pfork.channel always wins; otherwise derive it from the branch so
+		// main stays a clean release ("0.20.0-directplay.13") and beta keeps its "-beta" suffix.
+		val channel = project.getProperty("fork.channel") ?: runCatching {
+			val branch = System.getenv("GITHUB_REF_NAME")
+				?: providers.exec { commandLine("git", "rev-parse", "--abbrev-ref", "HEAD") }
+					.standardOutput.asText.get().trim()
+			if (branch.startsWith("beta")) "beta" else ""
+		}.getOrDefault("")
 		val channelSuffix = if (channel.isNotEmpty()) "-$channel" else ""
 		versionName = "$baseVersionName-directplay.$forkRevision$channelSuffix"
 		val baseCode = getVersionCode(baseVersionName)

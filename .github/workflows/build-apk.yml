@@ -73,9 +73,9 @@ jobs:
           VERSION_NAME=$(./gradlew :app:printVersionName -q $GRADLE_ARGS | tail -n 1)
           if [ -z "$VERSION_NAME" ]; then
             if [ "$IS_BETA" = "true" ]; then
-              VERSION_NAME="0.20.0-beta.4-directplay.13-beta"
+              VERSION_NAME="0.20.0-directplay.13-beta"
             else
-              VERSION_NAME="0.20.0-beta.4-directplay.12"
+              VERSION_NAME="0.20.0-directplay.13"
             fi
           fi
 
