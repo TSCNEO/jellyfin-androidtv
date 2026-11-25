@@ -738,4 +738,5 @@
     <string name="pref_dv7_fallback_auto_summary">Mapea DV Perfil 7 a HEVC (HDR10/HDR10+) si la tele no soporta Dolby Vision</string>
     <string name="pref_dv7_fallback_always_summary">Mapear siempre DV Perfil 7 a HEVC (HDR10/HDR10+)</string>
     <string name="pref_dv7_fallback_disabled_summary">Comportamiento original de ExoPlayer (sin fallback a HEVC para Perfil 7)</string>
+    <string name="lbl_3d">3D</string>
 </resources>
